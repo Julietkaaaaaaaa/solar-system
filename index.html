@@ -50,8 +50,14 @@
         <section id="scene-container" class="w-full h-[85vh] bg-black overflow-hidden relative cursor-grab active:cursor-grabbing border-b border-cyan-900/50">
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 pointer-events-none"></div>
             <div id="universe" class="absolute top-1/2 left-1/2 w-0 h-0 preserve-3d"></div>
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-cyan-500/50 font-sci-fi text-xs tracking-[0.2em] pointer-events-none animate-pulse">
-                [ ТЯГНІТЬ МИШКОЮ ДЛЯ ОБЕРТАННЯ ОСІ ]
+            <div class="absolute bottom-8 left-1/2 w-full text-center -translate-x-1/2 text-cyan-500/50 font-sci-fi text-[10px] sm:text-xs tracking-[0.15em] pointer-events-none animate-pulse px-4">
+                <span class="hidden md:inline">
+                    [ ТЯГНІТЬ МИШКОЮ ДЛЯ ОБЕРТАННЯ • CTRL + СКРОЛ ДЛЯ МАСШТАБУВАННЯ ]
+                </span>
+                
+                <span class="inline md:hidden">
+                    [ ТЯГНІТЬ ПАЛЬЦЕМ ДЛЯ ОБЕРТАННЯ • ЩИПОК ДЛЯ ЗУМУ ]
+                </span>
             </div>
         </section>
 
