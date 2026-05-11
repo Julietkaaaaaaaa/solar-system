@@ -1,74 +1,70 @@
-/* Загальні налаштування */
-:root {
-    --cyan: #00e5ff;
-    --dark-blue: #010409;
-    --border-color: rgba(0, 229, 255, 0.2);
-}
-
+/* Базова конфігурація середовища */
 body {
-    background-color: var(--dark-blue);
-    color: white;
-    font-family: 'Orbitron', sans-serif;
+    background-color: #000000;
+    background-image: radial-gradient(circle at 50% 40%, #0a0f1a 0%, #000000 100%);
+    background-attachment: fixed;
+    font-family: 'Rajdhani', sans-serif;
+    color: #e2e8f0;
+    scroll-behavior: smooth;
+    overflow-x: hidden; /* Заборона горизонтального скролу */
+    /* touch-action: none; ВИДАЛЕНО: викликало блокування скролінгу */
 }
 
-/* Навігація */
-.navbar {
-    background: rgba(0, 0, 0, 0.9);
-    border-bottom: 1px solid var(--border-color);
-    padding: 20px 0;
-    position: fixed;
-    top: 0; width: 100%; z-index: 1000;
+/* Типографіка */
+.font-sci-fi { 
+    font-family: 'Orbitron', sans-serif; 
 }
-.nav-container {
-    max-width: 1200px; margin: 0 auto;
-    display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
-}
-.logo { display: flex; align-items: center; gap: 10px; color: var(--cyan); font-weight: bold; letter-spacing: 2px; }
-.logo-circle { width: 24px; height: 24px; border: 2px solid var(--cyan); border-radius: 50%; box-shadow: 0 0 10px var(--cyan); }
 
-.nav-links a { color: #666; text-decoration: none; font-size: 12px; letter-spacing: 2px; margin: 0 20px; transition: 0.3s; }
-.nav-links a.active { color: var(--cyan); border-bottom: 2px solid var(--cyan); padding-bottom: 5px; }
-
-.login-btn { background: var(--cyan); color: black; border: none; padding: 8px 25px; border-radius: 4px; font-weight: bold; font-size: 10px; cursor: pointer; }
-
-/* Небесні тіла */
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; margin-top: 50px;}
-.title-with-accent {
-    border-left: 4px solid var(--cyan); padding-left: 15px; font-size: 24px; letter-spacing: 3px;
+/* Візуальні ефекти (Neon) */
+.neon-border {
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    border: 1px solid rgba(6, 182, 212, 0.2);
 }
-.search-input {
-    background: transparent; border: 1px solid var(--border-color); color: var(--cyan);
-    padding: 10px 20px; border-radius: 5px; width: 300px; outline: none;
+.neon-border:hover, .neon-border.active {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+    border-color: #22d3ee;
 }
-.filters { display: flex; gap: 10px; margin-bottom: 50px; }
-.filter-btn {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    color: #888; padding: 10px 20px; border-radius: 5px; font-size: 10px; cursor: pointer;
-}
-.filter-btn.active { border-color: var(--cyan); color: var(--cyan); }
 
-/* Гра (Секція) */
-.game-header { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 40px; }
-.header-line { height: 2px; width: 60px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
-.game-header h2 { font-size: 32px; letter-spacing: 10px; }
-
-.game-container-frame {
-    border: 1px solid var(--border-color); border-radius: 20px;
-    padding: 80px 40px; text-align: center; max-width: 900px; margin: 0 auto;
+/* Анімація меню */
+#mobile-menu { 
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; 
 }
-.game-main-title { font-size: 70px; color: var(--cyan); letter-spacing: 15px; margin-bottom: 0; }
-.game-subtitle { color: rgba(0, 229, 255, 0.5); font-size: 12px; letter-spacing: 5px; margin-bottom: 50px; }
 
-.instruction-box {
-    background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color);
-    padding: 30px; border-radius: 15px; display: inline-block; text-align: left; margin-bottom: 50px;
+/* Конфігурація 3D-простору */
+#scene-container { 
+    perspective: 1000px; 
+    touch-action: pan-y; /* Дозвіл виключно вертикального скролу */
 }
-.instr-title { margin-bottom: 20px; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;}
-.instr-row { margin-bottom: 10px; font-size: 14px; color: #ccc; }
+.preserve-3d { 
+    transform-style: preserve-3d; 
+}
+#universe, .planet-container, .planet-billboard {
+    transform-style: preserve-3d;
+}
 
-.init-btn {
-    background: var(--cyan); color: black; border: none; padding: 18px 60px;
-    border-radius: 50px; font-weight: bold; letter-spacing: 2px; cursor: pointer;
-    box-shadow: 0 0 30px rgba(0, 229, 255, 0.4); transition: 0.3s;
+/* Топологія об'єктів сцени */
+.planet-container {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform-style: preserve-3d;
+    cursor: pointer;
 }
-.init-btn:hover { transform: scale(1.05); box-shadow: 0 0 50px var(--cyan); }
+.planet-billboard {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform-style: preserve-3d;
+}
+.planet-body {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+/* Динаміка взаємодії (Hover) */
+.planet-container:hover .planet-body {
+    transform: translate(-50%, -50%) scale(1.4);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.8) !important;
+    z-index: 100;
+}
