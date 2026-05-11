@@ -3,20 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>SOLAR_OS — Ракета</title>
+<title>SOLAR_OS — Rocket Voyage</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --cyan: #00e5ff;
-    --teal: #00b4d8;
     --orange: #ff6b35;
     --yellow: #ffd60a;
     --bg: #050a14;
-    --panel: rgba(0,229,255,0.07);
     --border: rgba(0,229,255,0.25);
-    --fire: #ff4500; /* Колір вогню для ракети */
   }
 
   html, body {
@@ -25,206 +22,60 @@
     color: var(--cyan);
     font-family: 'Orbitron', monospace;
     overflow: hidden;
-    touch-action: none; /* Важливо для сенсорного керування */
+    touch-action: none;
   }
 
-  /* ─── STARS BACKGROUND ─── */
-  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  canvas { position: fixed; inset: 0; display: block; }
+  #stars { z-index: 0; }
+  #gameCanvas { z-index: 1; }
 
-  /* ─── SCREENS ─── */
   .screen {
     position: fixed; inset: 0; z-index: 10;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    background: rgba(5,10,20,0.92);
-    backdrop-filter: blur(4px);
+    background: rgba(5,10,20,0.9);
+    backdrop-filter: blur(5px);
     transition: opacity .4s;
   }
   .screen.hidden { opacity: 0; pointer-events: none; }
 
-  /* ─── LOGO ─── */
-  .logo {
-    font-size: clamp(1.4rem, 5vw, 2.6rem);
-    font-weight: 900;
-    letter-spacing: .3em;
-    color: var(--cyan);
-    text-shadow: 0 0 30px var(--cyan), 0 0 60px rgba(0,229,255,.4);
-    margin-bottom: .3em;
-  }
-  .logo span { color: #fff; }
-
-  .subtitle {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(.65rem, 2.5vw, .9rem);
-    color: rgba(0,229,255,.55);
-    letter-spacing: .2em;
-    margin-bottom: 2.5em;
-  }
-
-  /* ─── PANEL ─── */
   .panel {
-    background: var(--panel);
+    background: rgba(0,229,255,0.07);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 2em 2.5em;
+    padding: 2rem;
     text-align: center;
-    max-width: 420px;
-    width: 90%;
+    width: 90%; max-width: 400px;
   }
 
-  .panel h2 {
-    font-size: clamp(.9rem, 3.5vw, 1.15rem);
-    letter-spacing: .15em;
-    margin-bottom: 1.2em;
-    color: #fff;
-  }
+  .logo { font-size: 2rem; font-weight: 900; letter-spacing: .2em; margin-bottom: 0.5rem; }
+  .logo span { color: #fff; }
+  
+  .hint-row { font-family: 'Share Tech Mono'; font-size: 0.8rem; margin-bottom: 0.5rem; text-align: left; }
 
-  .hint-row {
-    display: flex; align-items: center; gap: .8em;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(.62rem, 2.2vw, .78rem);
-    color: rgba(255,255,255,.65);
-    margin-bottom: .6em;
-    text-align: left;
-  }
-  .hint-row .icon { font-size: 1.3em; width: 1.5em; text-align: center;}
-
-  /* ─── BUTTONS ─── */
   .btn {
-    display: inline-block;
-    margin-top: 1.6em;
-    padding: .75em 2.5em;
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(.7rem, 2.8vw, .88rem);
-    font-weight: 700;
-    letter-spacing: .18em;
-    color: var(--bg);
-    background: var(--cyan);
-    border: none; border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(0,229,255,.5);
-    transition: transform .15s, box-shadow .15s;
+    margin-top: 1.5rem; padding: 0.8rem 2rem;
+    background: var(--cyan); color: var(--bg);
+    border: none; border-radius: 5px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 0 15px var(--cyan);
   }
-  .btn:hover { transform: scale(1.05); box-shadow: 0 0 32px rgba(0,229,255,.8); }
-  .btn:active { transform: scale(.97); }
 
-  /* ─── HUD ─── */
   #hud {
     position: fixed; top: 0; left: 0; right: 0; z-index: 5;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: .6em 1.2em;
-    background: rgba(5,10,20,.75);
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(6px);
+    display: flex; justify-content: space-between; padding: 1rem;
+    background: rgba(5,10,20,0.6); border-bottom: 1px solid var(--border);
   }
 
-  #hud .hud-logo {
-    font-size: clamp(.65rem, 2.5vw, .85rem);
-    font-weight: 900;
-    letter-spacing: .25em;
-    color: var(--cyan);
-    text-shadow: 0 0 12px var(--cyan);
-  }
-
-  #hud .hud-score {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(.75rem, 3vw, 1rem);
-    color: #fff;
-    letter-spacing: .1em;
-  }
-  #hud .hud-score span { color: var(--yellow); font-weight: bold; }
-
-  #hud .hud-lives { font-size: clamp(.9rem, 3vw, 1.1rem); }
-
-  /* ─── CANVAS ─── */
-  #gameCanvas {
-    position: fixed; inset: 0; z-index: 1;
-    display: block;
-    width: 100%; height: 100%;
-  }
-
-  /* Ефект трясіння екрана */
+  /* Ефект трясіння при ударі */
   @keyframes shake {
-    0% { transform: translate(1px, 1px) rotate(0deg); }
-    20% { transform: translate(-3px, 0px) rotate(1deg); }
-    40% { transform: translate(3px, 2px) rotate(-1deg); }
-    60% { transform: translate(-3px, 1px) rotate(0deg); }
-    80% { transform: translate(3px, -2px) rotate(1deg); }
-    100% { transform: translate(1px, -1px) rotate(0deg); }
+    0% { transform: translate(1px, 1px); }
+    20% { transform: translate(-3px, 0px); }
+    40% { transform: translate(3px, 2px); }
+    100% { transform: translate(0,0); }
   }
   .shake { animation: shake 0.3s; }
 
-  /* ─── SPEED INDICATOR ─── */
-  #speedBar {
-    position: fixed; bottom: 1em; left: 50%; transform: translateX(-50%);
-    z-index: 5;
-    display: flex; align-items: center; gap: .6em;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(.55rem, 2vw, .72rem);
-    color: rgba(0,229,255,.7);
-    letter-spacing: .1em;
-  }
-  #speedFill {
-    width: 100px; height: 5px;
-    background: rgba(0,229,255,.15);
-    border-radius: 3px; overflow: hidden;
-    border: 1px solid rgba(0,229,255,.3);
-  }
-  #speedFillInner {
-    height: 100%; width: 10%;
-    background: var(--cyan);
-    box-shadow: 0 0 8px var(--cyan);
-    border-radius: 3px;
-    transition: width .3s, background .3s;
-  }
-
-  /* Кнопки прибрані, залишено тільки зону для сенсору */
-  #mobileControls {
-    position: fixed; inset: 0; z-index: 6;
-    display: none;
-    pointer-events: none;
-  }
-  @media (pointer: coarse) {
-    #mobileControls { display: block; pointer-events: all; }
-    #speedBar { bottom: 2em; } /* Трохи піднімемо бар швидкості */
-  }
-
-  /* ─── SCORE FINAL ─── */
-  .score-big {
-    font-size: clamp(2rem, 8vw, 3.5rem);
-    font-weight: 900;
-    color: var(--yellow);
-    text-shadow: 0 0 20px rgba(255,214,10,.6);
-    margin: .2em 0;
-  }
-  .score-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(.6rem, 2.2vw, .78rem);
-    color: rgba(255,255,255,.5);
-    letter-spacing: .15em;
-  }
-
-  .best-tag {
-    display: inline-block;
-    margin-top: .5em;
-    padding: .25em .9em;
-    background: rgba(255,107,53,.15);
-    border: 1px solid rgba(255,107,53,.4);
-    border-radius: 20px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(.58rem, 2vw, .73rem);
-    color: var(--orange);
-    letter-spacing: .1em;
-  }
-
-  /* ─── FLASH ─── */
-  #flash {
-    position: fixed; inset: 0; z-index: 20;
-    background: rgba(255,107,53,.18);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .08s;
-  }
+  #flash { position: fixed; inset: 0; z-index: 20; background: rgba(255,0,0,0.2); opacity: 0; pointer-events: none; }
   #flash.active { opacity: 1; }
 </style>
 </head>
@@ -232,35 +83,209 @@
 
 <canvas id="stars"></canvas>
 <canvas id="gameCanvas"></canvas>
+<div id="flash"></div>
 
 <div id="hud" style="display:none">
-  <div class="hud-logo">SOLAR_<span style="color:#fff">OS</span></div>
-  <div class="hud-score">SCORE: <span id="scoreVal">0</span></div>
-  <div class="hud-lives" id="livesDisplay">❤️❤️❤️</div>
+  <div style="letter-spacing:2px">ROCKET_<span>OS</span></div>
+  <div id="scoreDisplay">SCORE: 0</div>
+  <div id="livesDisplay">❤️❤️❤️</div>
 </div>
-
-<div id="speedBar" style="display:none">
-  ШВИДКІСТЬ ПОЛЬОТУ
-  <div id="speedFill"><div id="speedFillInner"></div></div>
-  <span id="speedLabel">1x</span>
-</div>
-
-<div id="mobileControls"></div>
-
-<div id="flash"></div>
 
 <div class="screen" id="startScreen">
   <div class="logo">SOLAR_<span>OS</span></div>
-  <div class="subtitle">// ROCKET SURVIVAL v2.0 //</div>
   <div class="panel">
-    <h2>🚀 КЕРУЙ РАКЕТОЮ</h2>
-    <div class="hint-row"><span class="icon">⌨️</span> WASD / Стрілки — рух</div>
-    <div class="hint-row"><span class="icon">📱</span> Води пальцем по екрану — ракета слідує за тобою</div>
-    <div class="hint-row"><span class="icon">☄️</span> Уникай комет, астероїдів та НЛО</div>
-    <div class="hint-row"><span class="icon">⚡</span> Швидкість польоту зростає!</div>
-    <div class="hint-row"><span class="icon">❤️</span> 3 життя — не розбий ракету!</div>
-    
-    <button class="btn" id="startBtn">▶ ЗАПУСТИТИ</button>
+    <h2 style="margin-bottom:1rem">🚀 МІСІЯ: ПОЛІТ</h2>
+    <div class="hint-row">⌨️ WASD / Стрілки — рух</div>
+    <div class="hint-row">📱 Тягни пальцем — ракета слідує за тобою</div>
+    <div class="hint-row">☄️ Уникай перешкод, що летять назустріч</div>
+    <button class="btn" id="startBtn">ЗАПУСТИТИ ДВИГУНИ</button>
   </div>
 </div>
+
+<div class="screen hidden" id="gameOverScreen">
+  <div class="logo">GAME <span>OVER</span></div>
+  <div class="panel">
+    <div style="font-size: 2rem; color: var(--yellow)" id="finalScore">0</div>
+    <p>Твій результат</p>
+    <button class="btn" id="restartBtn">СПРОБУВАТИ ЗНОВУ</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const starCanvas = document.getElementById('stars');
+const starCtx = starCanvas.getContext('2d');
+
+let W, H, player, obstacles, stars, score, lives, gameRunning, speed, invincible;
+const keys = {};
+
+// ── Налаштування зірок (Ефект польоту) ──
+function initStars() {
+  stars = Array.from({length: 150}, () => ({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    size: Math.random() * 2,
+    speed: Math.random() * 3 + 1
+  }));
+}
+
+function updateStars() {
+  starCtx.clearRect(0, 0, W, H);
+  starCtx.fillStyle = "white";
+  stars.forEach(s => {
+    s.x -= s.speed * (speed / 2); // Зірки летять вліво
+    if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+    starCtx.fill();
+  });
+}
+
+function resize() {
+  W = canvas.width = starCanvas.width = window.innerWidth;
+  H = canvas.height = starCanvas.height = window.innerHeight;
+  initStars();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── Керування ──
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
+
+// Сенсорне керування пальцем
+let touchX = null, touchY = null;
+window.addEventListener('touchmove', e => {
+  touchX = e.touches[0].clientX;
+  touchY = e.touches[0].clientY;
+}, {passive: false});
+
+function startGame() {
+  player = { x: 100, y: H/2, w: 40, h: 40, trail: [] };
+  obstacles = [];
+  score = 0;
+  lives = 3;
+  speed = 4;
+  invincible = false;
+  gameRunning = true;
+  document.getElementById('hud').style.display = 'flex';
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  updateLivesUI();
+  loop();
+}
+
+function updateLivesUI() {
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives);
+}
+
+function spawnObstacle() {
+  const emojis = ['☄️', '🪨', '🛸', '🌑'];
+  if (Math.random() < 0.05) {
+    obstacles.push({
+      x: W + 50,
+      y: Math.random() * H,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      size: 40,
+      speed: (Math.random() * 3 + 2) + speed
+    });
+  }
+}
+
+function loop() {
+  if (!gameRunning) return;
+
+  ctx.clearRect(0, 0, W, H);
+  updateStars();
+  spawnObstacle();
+
+  // Рух гравця (Клавіатура)
+  if (keys['ArrowUp'] || keys['w']) player.y -= 7;
+  if (keys['ArrowDown'] || keys['s']) player.y += 7;
+  if (keys['ArrowLeft'] || keys['a']) player.x -= 7;
+  if (keys['ArrowRight'] || keys['d']) player.x += 7;
+
+  // Рух гравця (Палець)
+  if (touchX !== null) {
+    player.x += (touchX - player.x) * 0.1;
+    player.y += (touchY - player.y) * 0.1;
+  }
+
+  // Межі екрану
+  player.x = Math.max(20, Math.min(W - 20, player.x));
+  player.y = Math.max(50, Math.min(H - 20, player.y));
+
+  // Шлейф ракети (вогонь)
+  player.trail.unshift({x: player.x, y: player.y});
+  if (player.trail.length > 15) player.trail.pop();
+  player.trail.forEach((t, i) => {
+    ctx.fillStyle = `rgba(255, 100, 0, ${1 - i/15})`;
+    ctx.beginPath();
+    ctx.arc(t.x - 20 - i, t.y, 10 - i/2, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Малюємо ракету
+  ctx.font = "40px serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  if (!invincible || Math.floor(Date.now()/100) % 2) {
+    ctx.fillText("🚀", player.x, player.y);
+  }
+
+  // Перешкоди
+  obstacles.forEach((o, index) => {
+    o.x -= o.speed;
+    ctx.fillText(o.emoji, o.x, o.y);
+
+    // Колізія
+    let dx = player.x - o.x;
+    let dy = player.y - o.y;
+    let distance = Math.sqrt(dx*dx + dy*dy);
+
+    if (distance < 30 && !invincible) {
+      lives--;
+      updateLivesUI();
+      triggerHit();
+      obstacles.splice(index, 1);
+      if (lives <= 0) {
+        gameOver();
+      } else {
+        invincible = true;
+        setTimeout(() => invincible = false, 2000);
+      }
+    }
+
+    if (o.x < -50) {
+      obstacles.splice(index, 1);
+      score += 10;
+      document.getElementById('scoreDisplay').textContent = `SCORE: ${score}`;
+    }
+  });
+
+  speed += 0.001;
+  requestAnimationFrame(loop);
+}
+
+function triggerHit() {
+  document.getElementById('flash').classList.add('active');
+  document.body.classList.add('shake');
+  setTimeout(() => {
+    document.getElementById('flash').classList.remove('active');
+    document.body.classList.remove('shake');
+  }, 300);
+}
+
+function gameOver() {
+  gameRunning = false;
+  document.getElementById('gameOverScreen').classList.remove('hidden');
+  document.getElementById('finalScore').textContent = score;
+}
+
+document.getElementById('startBtn').onclick = startGame;
+document.getElementById('restartBtn').onclick = startGame;
+</script>
+</body>
+</html>
 
