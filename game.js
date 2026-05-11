@@ -1,1 +1,292 @@
 
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SOLAR_OS — Rocket Voyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #00e5ff;
+    --orange: #ff6b35;
+    --yellow: #ffd60a;
+    --bg: #050a14;
+    --border: rgba(0,229,255,0.25);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--cyan);
+    font-family: 'Orbitron', monospace;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  canvas { position: fixed; inset: 0; display: block; }
+  #stars { z-index: 0; }
+  #gameCanvas { z-index: 1; }
+
+  .screen {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(5,10,20,0.9);
+    backdrop-filter: blur(5px);
+    transition: opacity .4s;
+  }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+
+  .panel {
+    background: rgba(0,229,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    width: 90%; max-width: 400px;
+  }
+
+  .logo { font-size: 2rem; font-weight: 900; letter-spacing: .2em; margin-bottom: 0.5rem; }
+  .logo span { color: #fff; }
+  
+  .hint-row { font-family: 'Share Tech Mono'; font-size: 0.8rem; margin-bottom: 0.5rem; text-align: left; }
+
+  .btn {
+    margin-top: 1.5rem; padding: 0.8rem 2rem;
+    background: var(--cyan); color: var(--bg);
+    border: none; border-radius: 5px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 0 15px var(--cyan);
+  }
+
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; justify-content: space-between; padding: 1rem;
+    background: rgba(5,10,20,0.6); border-bottom: 1px solid var(--border);
+  }
+
+  @keyframes shake {
+    0% { transform: translate(1px, 1px); }
+    20% { transform: translate(-3px, 0px); }
+    40% { transform: translate(3px, 2px); }
+    100% { transform: translate(0,0); }
+  }
+  .shake { animation: shake 0.3s; }
+
+  #flash { position: fixed; inset: 0; z-index: 20; background: rgba(255,0,0,0.2); opacity: 0; pointer-events: none; }
+  #flash.active { opacity: 1; }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<canvas id="gameCanvas"></canvas>
+<div id="flash"></div>
+
+<div id="hud" style="display:none">
+  <div style="letter-spacing:2px">ROCKET_<span>OS</span></div>
+  <div id="scoreDisplay">SCORE: 0</div>
+  <div id="livesDisplay">❤️❤️❤️</div>
+</div>
+
+<div class="screen" id="startScreen">
+  <div class="logo">SOLAR_<span>OS</span></div>
+  <div class="panel">
+    <h2 style="margin-bottom:1rem">🚀 МІСІЯ: ПОЛІТ</h2>
+    <div class="hint-row">⌨️ WASD / Стрілки — рух</div>
+    <div class="hint-row">📱 Тягни пальцем — ракета слідує за тобою</div>
+    <div class="hint-row">☄️ Уникай перешкод, що летять назустріч</div>
+    <button class="btn" id="startBtn">ЗАПУСТИТИ ДВИГУНИ</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="gameOverScreen">
+  <div class="logo">GAME <span>OVER</span></div>
+  <div class="panel">
+    <div style="font-size: 2rem; color: var(--yellow)" id="finalScore">0</div>
+    <p>Твій результат</p>
+    <button class="btn" id="restartBtn">СПРОБУВАТИ ЗНОВУ</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const starCanvas = document.getElementById('stars');
+const starCtx = starCanvas.getContext('2d');
+
+let W, H, player, obstacles, stars, score, lives, gameRunning, speed, invincible;
+const keys = {};
+
+function initStars() {
+  stars = Array.from({length: 100}, () => ({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    size: Math.random() * 2 + 1,
+    speed: Math.random() * 2 + 0.5
+  }));
+}
+
+function updateStars() {
+  starCtx.clearRect(0, 0, W, H);
+  starCtx.fillStyle = "#ffffff";
+  stars.forEach(s => {
+    s.x -= s.speed * (speed / 2);
+    if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+    starCtx.fillRect(s.x, s.y, s.size, s.size);
+  });
+}
+
+function resize() {
+  W = canvas.width = starCanvas.width = window.innerWidth;
+  H = canvas.height = starCanvas.height = window.innerHeight;
+  initStars();
+}
+window.addEventListener('resize', resize);
+resize();
+
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
+
+let touchX = null, touchY = null;
+window.addEventListener('touchstart', e => {
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+}, {passive: false});
+
+window.addEventListener('touchmove', e => {
+  touchX = e.touches[0].clientX;
+  touchY = e.touches[0].clientY;
+  e.preventDefault();
+}, {passive: false});
+
+function startGame() {
+  player = { x: 100, y: H/2, w: 60, h: 60, trail: [] };
+  obstacles = [];
+  score = 0;
+  lives = 3;
+  speed = 4;
+  invincible = false;
+  gameRunning = true;
+  document.getElementById('hud').style.display = 'flex';
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  updateLivesUI();
+  loop();
+}
+
+function updateLivesUI() {
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives);
+}
+
+function spawnObstacle() {
+  const emojis = ['☄️', '🪨', '🛸', '👾'];
+  if (Math.random() < 0.04) {
+    obstacles.push({
+      x: W + 100,
+      y: Math.random() * (H - 50) + 25,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      size: 50,
+      speed: (Math.random() * 3 + 2) + speed
+    });
+  }
+}
+
+function loop() {
+  if (!gameRunning) return;
+
+  // Очищення екрану без жодних залишкових ефектів
+  ctx.clearRect(0, 0, W, H);
+  updateStars();
+  spawnObstacle();
+
+  // Керування
+  if (keys['ArrowUp'] || keys['w']) player.y -= 8;
+  if (keys['ArrowDown'] || keys['s']) player.y += 8;
+  if (keys['ArrowLeft'] || keys['a']) player.x -= 8;
+  if (keys['ArrowRight'] || keys['d']) player.x += 8;
+
+  if (touchX !== null) {
+    player.x += (touchX - player.x) * 0.12;
+    player.y += (touchY - player.y) * 0.12;
+  }
+
+  // Обмеження позиції ракети
+  player.x = Math.max(50, Math.min(W * 0.45, player.x));
+  player.y = Math.max(80, Math.min(H - 50, player.y));
+
+  // 1. ШЛЕЙФ (малюємо першим, щоб він був ПІД ракетою)
+  player.trail.unshift({x: player.x, y: player.y});
+  if (player.trail.length > 15) player.trail.pop();
+  player.trail.forEach((t, i) => {
+    ctx.globalAlpha = (1 - i/15);
+    ctx.fillStyle = "#ffaa00";
+    ctx.beginPath();
+    ctx.arc(t.x - 35 - i*2, t.y, 12 - i/1.5, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // 2. РАКЕТА (Малюємо максимально чітко)
+  ctx.globalAlpha = 1.0;
+  ctx.font = "60px Arial"; // Використовуємо системний шрифт для кращої підтримки емодзі
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  if (!invincible || Math.floor(Date.now()/150) % 2) {
+    ctx.fillText("🚀", player.x, player.y);
+  }
+
+  // 3. ПЕРЕШКОДИ
+  obstacles.forEach((o, index) => {
+    o.x -= o.speed;
+    ctx.globalAlpha = 1.0;
+    ctx.font = "50px Arial";
+    ctx.fillText(o.emoji, o.x, o.y);
+
+    // Логіка зіткнення
+    let dx = player.x - o.x;
+    let dy = player.y - o.y;
+    let distance = Math.sqrt(dx*dx + dy*dy);
+
+    if (distance < 45 && !invincible) {
+      lives--;
+      updateLivesUI();
+      triggerHit();
+      obstacles.splice(index, 1);
+      if (lives <= 0) gameOver();
+      else {
+        invincible = true;
+        setTimeout(() => invincible = false, 2000);
+      }
+    }
+
+    if (o.x < -100) obstacles.splice(index, 1);
+  });
+
+  score += 1;
+  if (score % 10 === 0) {
+      document.getElementById('scoreDisplay').textContent = `SCORE: ${Math.floor(score/10)}`;
+  }
+  
+  speed += 0.0005;
+  requestAnimationFrame(loop);
+}
+
+function triggerHit() {
+  document.getElementById('flash').classList.add('active');
+  setTimeout(() => document.getElementById('flash').classList.remove('active'), 200);
+}
+
+function gameOver() {
+  gameRunning = false;
+  document.getElementById('gameOverScreen').classList.remove('hidden');
+  document.getElementById('finalScore').textContent = Math.floor(score/10);
+}
+
+document.getElementById('startBtn').onclick = startGame;
+document.getElementById('restartBtn').onclick = startGame;
+</script>
+</body>
+</html>
