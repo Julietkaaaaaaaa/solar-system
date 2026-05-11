@@ -1,315 +1,298 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SOLAR_OS — Rocket Voyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-  /* Головний контейнер гри */
-  #game-container {
-    position: relative;
-    width: 100%;
-    height: 600px;
-    background: #050a14;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #00e5ff;
+    --orange: #ff6b35;
+    --yellow: #ffd60a;
+    --bg: #050a14;
+    --border: rgba(0,229,255,0.25);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--cyan);
+    font-family: 'Orbitron', monospace;
     overflow: hidden;
-    border: 1px solid #1a2a3a;
-    border-radius: 20px;
-    font-family: 'Orbitron', sans-serif;
-    touch-action: none; /* Важливо для мобільного керування */
+    touch-action: none;
   }
 
-  canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
+  canvas { position: fixed; inset: 0; display: block; }
+  #stars { z-index: 0; }
+  #gameCanvas { z-index: 1; }
 
-  /* Екран старту */
-  .game-screen {
-    position: absolute;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #050a14;
-    transition: opacity 0.5s ease;
+  .screen {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(5,10,20,0.9);
+    backdrop-filter: blur(5px);
+    transition: opacity .4s;
   }
+  .screen.hidden { opacity: 0; pointer-events: none; }
 
-  .game-screen.hidden { 
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .solar-title {
-    font-size: clamp(40px, 8vw, 80px);
-    font-weight: 900;
-    color: #00e5ff;
-    letter-spacing: 15px;
-    text-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
-    margin-bottom: 5px;
+  .panel {
+    background: rgba(0,229,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
     text-align: center;
+    width: 90%; max-width: 400px;
   }
 
-  .solar-subtitle {
-    color: #00e5ff;
-    font-size: 14px;
-    letter-spacing: 5px;
-    margin-bottom: 40px;
-    opacity: 0.8;
-  }
+  .logo { font-size: 2rem; font-weight: 900; letter-spacing: .2em; margin-bottom: 0.5rem; }
+  .logo span { color: #fff; }
+  
+  .hint-row { font-family: 'Share Tech Mono'; font-size: 0.8rem; margin-bottom: 0.5rem; text-align: left; }
 
-  .instruction-box {
-    background: rgba(0, 20, 30, 0.4);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 15px;
-    padding: 30px 40px;
-    width: 90%;
-    max-width: 450px;
-    text-align: left;
-    margin-bottom: 40px;
-  }
-
-  .instr-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 16px;
-    color: #fff;
-    margin-bottom: 25px;
-    justify-content: center;
-    text-transform: uppercase;
-  }
-
-  .instr-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    color: #a0c0c5;
-    font-size: 13px;
-    font-family: sans-serif;
-  }
-
-  .init-button {
-    background: #00bcd4;
-    color: #000 !important;
-    border: none;
-    padding: 15px 60px;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow: 0 0 40px rgba(0, 188, 212, 0.6);
-    transition: 0.3s ease;
-  }
-
-  .init-button:hover {
-    transform: scale(1.05);
-    background: #00e5ff;
-    box-shadow: 0 0 60px rgba(0, 229, 255, 0.8);
+  .btn {
+    margin-top: 1.5rem; padding: 0.8rem 2rem;
+    background: var(--cyan); color: var(--bg);
+    border: none; border-radius: 5px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 0 15px var(--cyan);
   }
 
   #hud {
-    position: absolute;
-    top: 20px;
-    width: 100%;
-    display: none;
-    justify-content: space-between;
-    padding: 0 40px;
-    color: #00e5ff;
-    z-index: 10;
-    font-size: 14px;
-    letter-spacing: 2px;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; justify-content: space-between; padding: 1rem;
+    background: rgba(5,10,20,0.6); border-bottom: 1px solid var(--border);
   }
+
+  @keyframes shake {
+    0% { transform: translate(1px, 1px); }
+    20% { transform: translate(-3px, 0px); }
+    40% { transform: translate(3px, 2px); }
+    100% { transform: translate(0,0); }
+  }
+  .shake { animation: shake 0.3s; }
+
+  #flash { position: fixed; inset: 0; z-index: 20; background: rgba(255,0,0,0.2); opacity: 0; pointer-events: none; }
+  #flash.active { opacity: 1; }
 </style>
+</head>
+<body>
 
-<div id="game-container">
-  <canvas id="starsCanvas"></canvas>
-  <canvas id="gameCanvas"></canvas>
+<canvas id="stars"></canvas>
+<canvas id="gameCanvas"></canvas>
+<div id="flash"></div>
 
-  <div class="game-screen" id="startScreen">
-    <h1 class="solar-title">SOLAR_OS</h1>
-    <p class="solar-subtitle">// ROCKET SURVIVAL v2.0 //</p>
+<div id="hud" style="display:none">
+  <div style="letter-spacing:2px">ROCKET_<span>OS</span></div>
+  <div id="scoreDisplay">SCORE: 0</div>
+  <div id="livesDisplay">❤️❤️❤️</div>
+</div>
 
-    <div class="instruction-box">
-      <div class="instr-header">🚀 Керуй ракетою</div>
-      <div class="instr-item"><span>⌨️</span> <span>WASD / Стрілки — рух</span></div>
-      <div class="instr-item"><span>📱</span> <span>Тач/Миша — ракета слідує за тобою</span></div>
-      <div class="instr-item"><span>☄️</span> <span>Уникай комет та астероїдів</span></div>
-      <div class="instr-item"><span>⚡</span> <span>Швидкість польоту зростає!</span></div>
-      <div class="instr-item"><span>❤️</span> <span>3 життя — бережи систему!</span></div>
-    </div>
-
-    <button class="init-button" id="startBtn">Ініціалізувати</button>
+<div class="screen" id="startScreen">
+  <div class="logo">SOLAR_<span>OS</span></div>
+  <div class="panel">
+    <h2 style="margin-bottom:1rem">🚀 МІСІЯ: ПОЛІТ</h2>
+    <div class="hint-row">⌨️ WASD / Стрілки — рух</div>
+    <div class="hint-row">📱 Тягни пальцем — ракета слідує за тобою</div>
+    <div class="hint-row">☄️ Уникай перешкод, що летять назустріч</div>
+    <button class="btn" id="startBtn">ЗАПУСТИТИ ДВИГУНИ</button>
   </div>
+</div>
 
-  <div id="hud">
-    <div class="font-sci-fi">SYSTEM_ACTIVE</div>
-    <div id="scoreDisplay">SCORE: 0</div>
-    <div id="livesDisplay">❤️❤️❤️</div>
+<div class="screen hidden" id="gameOverScreen">
+  <div class="logo">GAME <span>OVER</span></div>
+  <div class="panel">
+    <div style="font-size: 2rem; color: var(--yellow)" id="finalScore">0</div>
+    <p>Твій результат</p>
+    <button class="btn" id="restartBtn">СПРОБУВАТИ ЗНОВУ</button>
   </div>
 </div>
 
 <script>
-(function() {
-    const container = document.getElementById('game-container');
-    const gCanvas = document.getElementById('gameCanvas');
-    const sCanvas = document.getElementById('starsCanvas');
-    const gCtx = gCanvas.getContext('2d');
-    const sCtx = sCanvas.getContext('2d');
-    const startBtn = document.getElementById('startBtn');
-    const startScreen = document.getElementById('startScreen');
-    const hud = document.getElementById('hud');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const starCanvas = document.getElementById('stars');
+const starCtx = starCanvas.getContext('2d');
 
-    let gameActive = false;
-    let score = 0;
-    let lives = 3;
-    let frameCount = 0;
-    
-    let rocket = { x: 100, y: 300, w: 40, h: 25, speed: 7, targetY: 300 };
-    let enemies = [];
-    let stars = [];
-    let keys = {};
+let W, H, player, obstacles, stars, score, lives, gameRunning, speed, invincible;
+const keys = {};
 
-    // Налаштування розмірів
-    function resize() {
-        const rect = container.getBoundingClientRect();
-        gCanvas.width = sCanvas.width = rect.width;
-        gCanvas.height = sCanvas.height = rect.height;
-        initStars();
-    }
+function initStars() {
+  stars = Array.from({length: 150}, () => ({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    size: Math.random() * 2,
+    speed: Math.random() * 3 + 1
+  }));
+}
 
-    function initStars() {
-        stars = [];
-        for(let i=0; i<100; i++) {
-            stars.push({ x: Math.random()*sCanvas.width, y: Math.random()*sCanvas.height, size: Math.random()*2, speed: Math.random()*0.5 + 0.1 });
-        }
-    }
+function updateStars() {
+  starCtx.clearRect(0, 0, W, H);
+  starCtx.fillStyle = "white";
+  stars.forEach(s => {
+    s.x -= s.speed * (speed / 2);
+    if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+    starCtx.fill();
+  });
+}
 
-    // Керування
-    window.addEventListener('keydown', e => keys[e.code] = true);
-    window.addEventListener('keyup', e => keys[e.code] = false);
-    container.addEventListener('mousemove', e => {
-        const rect = container.getBoundingClientRect();
-        rocket.targetY = e.clientY - rect.top;
+function resize() {
+  W = canvas.width = starCanvas.width = window.innerWidth;
+  H = canvas.height = starCanvas.height = window.innerHeight;
+  initStars();
+}
+window.addEventListener('resize', resize);
+resize();
+
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
+
+let touchX = null, touchY = null;
+window.addEventListener('touchmove', e => {
+  touchX = e.touches[0].clientX;
+  touchY = e.touches[0].clientY;
+  e.preventDefault();
+}, {passive: false});
+
+function startGame() {
+  // Ракета тепер стартує зліва (x: 80) і вона стала більшою (w: 60)
+  player = { x: 80, y: H/2, w: 60, h: 60, trail: [] };
+  obstacles = [];
+  score = 0;
+  lives = 3;
+  speed = 4;
+  invincible = false;
+  gameRunning = true;
+  document.getElementById('hud').style.display = 'flex';
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  updateLivesUI();
+  loop();
+}
+
+function updateLivesUI() {
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives);
+}
+
+function spawnObstacle() {
+  const emojis = ['☄️', '🪨', '🛸', '🌑'];
+  if (Math.random() < 0.05) {
+    obstacles.push({
+      x: W + 100,
+      y: Math.random() * H,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      size: 55, // Збільшили розмір перешкод, щоб їх було краще видно
+      speed: (Math.random() * 3 + 2) + speed
     });
-    container.addEventListener('touchmove', e => {
-        const rect = container.getBoundingClientRect();
-        rocket.targetY = e.touches[0].clientY - rect.top;
-        e.preventDefault();
-    }, {passive: false});
+  }
+}
 
-    function spawnEnemy() {
-        const type = Math.random() > 0.8 ? 'ufo' : 'comet';
-        enemies.push({
-            x: gCanvas.width + 50,
-            y: Math.random() * (gCanvas.height - 30),
-            w: 30, h: 20,
-            speed: (3 + Math.random() * 4) + (score / 100),
-            type: type
-        });
+function loop() {
+  if (!gameRunning) return;
+
+  ctx.clearRect(0, 0, W, H);
+  updateStars();
+  spawnObstacle();
+
+  // Рух клавіатурою
+  if (keys['ArrowUp'] || keys['w']) player.y -= 9;
+  if (keys['ArrowDown'] || keys['s']) player.y += 9;
+  if (keys['ArrowLeft'] || keys['a']) player.x -= 9;
+  if (keys['ArrowRight'] || keys['d']) player.x += 9;
+
+  // Рух пальцем
+  if (touchX !== null) {
+    player.x += (touchX - player.x) * 0.15;
+    player.y += (touchY - player.y) * 0.15;
+  }
+
+  // Обмежуємо ракету лівою частиною екрана (не далі 40% ширини)
+  player.x = Math.max(40, Math.min(W * 0.4, player.x));
+  player.y = Math.max(60, Math.min(H - 40, player.y));
+
+  // Яскравий шлейф
+  player.trail.unshift({x: player.x, y: player.y});
+  if (player.trail.length > 20) player.trail.pop();
+  player.trail.forEach((t, i) => {
+    ctx.fillStyle = `rgba(255, 140, 0, ${1 - i/20})`;
+    ctx.beginPath();
+    ctx.arc(t.x - 30 - i, t.y, 18 - i/1.2, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Малюємо РАКЕТУ
+  ctx.save();
+  ctx.font = "60px serif"; // Велика ракета
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.globalAlpha = 1.0; // Максимальна яскравість
+
+  // Неонове світіння навколо ракети
+  ctx.shadowBlur = 25;
+  ctx.shadowColor = "rgba(0, 229, 255, 0.9)";
+
+  if (!invincible || Math.floor(Date.now()/100) % 2) {
+    ctx.fillText("🚀", player.x, player.y);
+  }
+  ctx.restore();
+
+  // Перешкоди
+  obstacles.forEach((o, index) => {
+    o.x -= o.speed;
+    ctx.font = `${o.size}px serif`;
+    ctx.globalAlpha = 1.0; // Яскраві перешкоди
+    ctx.fillText(o.emoji, o.x, o.y);
+
+    let dx = player.x - o.x;
+    let dy = player.y - o.y;
+    let distance = Math.sqrt(dx*dx + dy*dy);
+
+    if (distance < 45 && !invincible) {
+      lives--;
+      updateLivesUI();
+      triggerHit();
+      obstacles.splice(index, 1);
+      if (lives <= 0) {
+        gameOver();
+      } else {
+        invincible = true;
+        setTimeout(() => invincible = false, 2000);
+      }
     }
 
-    function update() {
-        if(!gameActive) return;
-
-        // Рух зірок
-        stars.forEach(s => {
-            s.x -= s.speed;
-            if(s.x < 0) s.x = sCanvas.width;
-        });
-
-        // Рух ракети (клавіші)
-        if(keys['ArrowUp'] || keys['KeyW']) rocket.targetY -= rocket.speed;
-        if(keys['ArrowDown'] || keys['KeyS']) rocket.targetY += rocket.speed;
-        
-        // Плавне слідування за targetY
-        let dy = rocket.targetY - (rocket.y + rocket.h/2);
-        rocket.y += dy * 0.1;
-        
-        // Межі екрану
-        if(rocket.y < 0) rocket.y = 0;
-        if(rocket.y > gCanvas.height - rocket.h) rocket.y = gCanvas.height - rocket.h;
-
-        // Вороги
-        if(frameCount % Math.max(20, 60 - Math.floor(score/10)) === 0) spawnEnemy();
-
-        enemies.forEach((en, i) => {
-            en.x -= en.speed;
-            
-            // Колізія
-            if(rocket.x < en.x + en.w && rocket.x + rocket.w > en.x &&
-               rocket.y < en.y + en.h && rocket.y + rocket.h > en.y) {
-                enemies.splice(i, 1);
-                lives--;
-                updateHUD();
-                if(lives <= 0) endGame();
-            }
-
-            if(en.x < -50) {
-                enemies.splice(i, 1);
-                score += 10;
-                updateHUD();
-            }
-        });
-
-        frameCount++;
+    if (o.x < -100) {
+      obstacles.splice(index, 1);
+      score += 10;
+      document.getElementById('scoreDisplay').textContent = `SCORE: ${score}`;
     }
+  });
 
-    function draw() {
-        // Фон (Зірки)
-        sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
-        sCtx.fillStyle = '#fff';
-        stars.forEach(s => sCtx.fillRect(s.x, s.y, s.size, s.size));
+  speed += 0.001;
+  requestAnimationFrame(loop);
+}
 
-        // Гра
-        gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+function triggerHit() {
+  document.getElementById('flash').classList.add('active');
+  document.body.classList.add('shake');
+  setTimeout(() => {
+    document.getElementById('flash').classList.remove('active');
+    document.body.classList.remove('shake');
+  }, 300);
+}
 
-        // Ракета (Cyan Glow)
-        gCtx.shadowBlur = 15;
-        gCtx.shadowColor = '#00e5ff';
-        gCtx.fillStyle = '#00e5ff';
-        gCtx.fillRect(rocket.x, rocket.y, rocket.w, rocket.h);
-        // "Вогонь" ракети
-        gCtx.fillStyle = '#ff8800';
-        gCtx.fillRect(rocket.x - 10, rocket.y + 5, 10, rocket.h - 10);
+function gameOver() {
+  gameRunning = false;
+  document.getElementById('gameOverScreen').classList.remove('hidden');
+  document.getElementById('finalScore').textContent = score;
+}
 
-        // Вороги
-        enemies.forEach(en => {
-            gCtx.shadowColor = en.type === 'ufo' ? '#ff00ff' : '#ff4400';
-            gCtx.fillStyle = gCtx.shadowColor;
-            if(en.type === 'ufo') {
-                gCtx.fillRect(en.x, en.y, en.w, en.h);
-            } else {
-                gCtx.beginPath();
-                gCtx.arc(en.x + en.w/2, en.y + en.h/2, en.w/2, 0, Math.PI*2);
-                gCtx.fill();
-            }
-        });
-
-        if(gameActive) requestAnimationFrame(() => { update(); draw(); });
-    }
-
-    function updateHUD() {
-        document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
-        document.getElementById('livesDisplay').innerText = '❤️'.repeat(lives);
-    }
-
-    function endGame() {
-        gameActive = false;
-        alert(`GAME OVER! Ваш результат: ${score}`);
-        location.reload();
-    }
-
-    startBtn.onclick = () => {
-        startScreen.classList.add('hidden');
-        hud.style.display = 'flex';
-        gameActive = true;
-        resize();
-        draw();
-    };
-
-    window.addEventListener('resize', resize);
-    resize();
-})();
+document.getElementById('startBtn').onclick = startGame;
+document.getElementById('restartBtn').onclick = startGame;
 </script>
+</body>
+</html>
