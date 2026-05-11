@@ -24,26 +24,36 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden bg-black text-white">
-
-    <nav class="bg-black/80 backdrop-blur-xl border-b border-cyan-900/50 fixed w-full z-50 top-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <div class="flex-shrink-0 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full border-2 border-cyan-400 shadow-[0_0_15px_#22d3ee]"></div>
-                    <span class="font-sci-fi font-bold text-xl tracking-[0.2em] text-cyan-400">SOLAR_OS</span>
-                </div>
-                <div class="hidden md:flex items-center space-x-8 font-sci-fi text-sm tracking-widest">
-                    <a href="#scene-container" class="text-gray-400 hover:text-cyan-300 transition">СИСТЕМА</a>
-                    <a href="#catalog-view" class="text-gray-400 hover:text-cyan-300 transition">НЕБЕСНІ ТІЛА</a>
-                    <a href="#game-view" class="text-cyan-400 border-b-2 border-cyan-400 pb-1 transition">ГРА</a>
-                </div>
-                <div class="hidden md:flex items-center gap-2">
-                    <input type="text" id="username-input" placeholder="ВВЕДІТЬ ІМ'Я..." class="bg-gray-900/50 border border-cyan-900 text-cyan-400 text-xs px-3 py-1 rounded w-40">
-                    <button id="greet-btn" class="font-sci-fi text-xs text-black bg-cyan-500 px-3 py-1 rounded hover:bg-cyan-400 transition">ВХІД</button>
-                </div>
+<nav class="bg-black/80 backdrop-blur-xl border-b border-cyan-900/50 fixed w-full z-50 top-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-20">
+            
+            <div class="flex-shrink-0 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full border-2 border-cyan-400 shadow-[0_0_15px_#22d3ee]"></div>
+                <span class="font-sci-fi font-bold text-xl tracking-[0.2em] text-cyan-400">SOLAR_OS</span>
             </div>
+
+            <div class="hidden md:flex items-center space-x-8 font-sci-fi text-sm tracking-widest">
+                <a href="#scene-container" class="text-gray-400 hover:text-cyan-300 transition uppercase">Система</a>
+                <a href="#game-view" class="text-gray-400 hover:text-cyan-300 transition uppercase">Гра</a>
+                <a href="#catalog-view" class="text-cyan-400 border-b-2 border-cyan-400 pb-1 transition uppercase">Небесні тіла</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-3">
+                <input type="text" 
+                       id="username-input" 
+                       placeholder="ВВЕДІТЬ ІМ'Я..." 
+                       class="bg-gray-900/50 border border-cyan-900/50 text-cyan-400 text-[10px] px-4 py-2 rounded shadow-[inset_0_0_5px_rgba(0,255,255,0.1)] outline-none focus:border-cyan-400 transition w-48 tracking-widest font-sci-fi">
+                
+                <button id="greet-btn" 
+                        class="font-sci-fi text-[10px] text-black bg-cyan-500 px-6 py-2 rounded hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(6,182,212,0.4)] font-bold tracking-widest">
+                    ВХІД
+                </button>
+            </div>
+
         </div>
-    </nav>
+    </div>
+</nav>
 
     <main class="mt-20 w-full flex-grow">
         <section id="scene-container" class="w-full h-[80vh] bg-black overflow-hidden relative border-b border-cyan-900/50">
