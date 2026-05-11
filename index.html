@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>SOLAR_OS — Комета</title>
+<title>SOLAR_OS — Ракета</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,6 +16,7 @@
     --bg: #050a14;
     --panel: rgba(0,229,255,0.07);
     --border: rgba(0,229,255,0.25);
+    --fire: #ff4500; /* Колір вогню для ракети */
   }
 
   html, body {
@@ -24,7 +25,7 @@
     color: var(--cyan);
     font-family: 'Orbitron', monospace;
     overflow: hidden;
-    touch-action: none;
+    touch-action: none; /* Важливо для сенсорного керування */
   }
 
   /* ─── STARS BACKGROUND ─── */
@@ -84,8 +85,9 @@
     font-size: clamp(.62rem, 2.2vw, .78rem);
     color: rgba(255,255,255,.65);
     margin-bottom: .6em;
+    text-align: left;
   }
-  .hint-row .icon { font-size: 1.3em; }
+  .hint-row .icon { font-size: 1.3em; width: 1.5em; text-align: center;}
 
   /* ─── BUTTONS ─── */
   .btn {
@@ -141,6 +143,17 @@
     width: 100%; height: 100%;
   }
 
+  /* Ефект трясіння екрана */
+  @keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    40% { transform: translate(3px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    80% { transform: translate(3px, -2px) rotate(1deg); }
+    100% { transform: translate(1px, -1px) rotate(0deg); }
+  }
+  .shake { animation: shake 0.3s; }
+
   /* ─── SPEED INDICATOR ─── */
   #speedBar {
     position: fixed; bottom: 1em; left: 50%; transform: translateX(-50%);
@@ -165,41 +178,15 @@
     transition: width .3s, background .3s;
   }
 
-  /* ─── MOBILE CONTROLS ─── */
+  /* Кнопки прибрані, залишено тільки зону для сенсору */
   #mobileControls {
-    position: fixed; bottom: 2.5em; z-index: 6;
-    width: 100%; display: none;
-    justify-content: space-between;
-    padding: 0 1.2em;
+    position: fixed; inset: 0; z-index: 6;
+    display: none;
     pointer-events: none;
   }
   @media (pointer: coarse) {
-    #mobileControls { display: flex; }
-    #speedBar { bottom: 5.5em; }
-  }
-
-  .ctrl-zone {
-    display: flex; flex-direction: column; gap: .5em;
-    pointer-events: all;
-  }
-  .ctrl-row { display: flex; gap: .5em; justify-content: center; }
-
-  .ctrl-btn {
-    width: 52px; height: 52px;
-    background: rgba(0,229,255,.1);
-    border: 1px solid rgba(0,229,255,.35);
-    border-radius: 10px;
-    font-size: 1.4em;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    color: var(--cyan);
-    transition: background .1s;
-  }
-  .ctrl-btn:active, .ctrl-btn.pressed {
-    background: rgba(0,229,255,.28);
-    box-shadow: 0 0 12px rgba(0,229,255,.4);
+    #mobileControls { display: block; pointer-events: all; }
+    #speedBar { bottom: 2em; } /* Трохи піднімемо бар швидкості */
   }
 
   /* ─── SCORE FINAL ─── */
@@ -246,461 +233,31 @@
 <canvas id="stars"></canvas>
 <canvas id="gameCanvas"></canvas>
 
-<!-- HUD -->
 <div id="hud" style="display:none">
   <div class="hud-logo">SOLAR_<span style="color:#fff">OS</span></div>
   <div class="hud-score">SCORE: <span id="scoreVal">0</span></div>
   <div class="hud-lives" id="livesDisplay">❤️❤️❤️</div>
 </div>
 
-<!-- Speed bar -->
 <div id="speedBar" style="display:none">
-  ШВИДКІСТЬ
+  ШВИДКІСТЬ ПОЛЬОТУ
   <div id="speedFill"><div id="speedFillInner"></div></div>
   <span id="speedLabel">1x</span>
 </div>
 
-<!-- Mobile controls -->
-<div id="mobileControls">
-  <div class="ctrl-zone">
-    <div class="ctrl-row"><button class="ctrl-btn" data-dir="up">▲</button></div>
-    <div class="ctrl-row">
-      <button class="ctrl-btn" data-dir="left">◀</button>
-      <button class="ctrl-btn" data-dir="down">▼</button>
-      <button class="ctrl-btn" data-dir="right">▶</button>
-    </div>
-  </div>
-  <div class="ctrl-zone" style="justify-content:flex-end;align-items:flex-end;">
-    <!-- placeholder -->
-  </div>
-</div>
+<div id="mobileControls"></div>
 
-<!-- Flash on hit -->
 <div id="flash"></div>
 
-<!-- ─── START SCREEN ─── -->
 <div class="screen" id="startScreen">
   <div class="logo">SOLAR_<span>OS</span></div>
-  <div class="subtitle">// COMET SURVIVAL v1.0 //</div>
+  <div class="subtitle">// ROCKET SURVIVAL v2.0 //</div>
   <div class="panel">
-    <h2>☄️ КЕРУЙ КОМЕТОЮ</h2>
-    <div class="hint-row"><span class="icon">⌨️</span> WASD або стрілки — рух</div>
-    <div class="hint-row"><span class="icon">📱</span> Кнопки на екрані — мобільне керування</div>
-    <div class="hint-row"><span class="icon">🚀</span> Уникай метеоритів, ракет та астероїдів</div>
-    <div class="hint-row"><span class="icon">⚡</span> Гра прискорюється з часом</div>
-    <div class="hint-row"><span class="icon">❤️</span> У тебе 3 життя — будь обережна!</div>
-    <button class="btn" id="startBtn">▶ ЗАПУСТИТИ</button>
-  </div>
-</div>
+    <h2>🚀 КЕРУЙ РАКЕТОЮ</h2>
+    <div class="hint-row"><span class="icon">⌨️</span> WASD / Стрілки — рух</div>
+    <div class="hint-row"><span class="icon">📱</span> Води пальцем по екрану — ракета слідує за тобою</div>
+    <div class="hint-row"><span class="icon">☄️</span> Уникай комет, астероїдів та НЛО</div>
+    <div class="hint-row"><span class="icon">⚡</span> Швидкість польоту зростає!</div>
+    <div class="hint-row"><span class="icon">❤️</span> 3 життя — не розбий ракету!Зміни внесено! Тепер це справжній космічний рейсинг.
 
-<!-- ─── GAME OVER SCREEN ─── -->
-<div class="screen hidden" id="gameOverScreen">
-  <div class="logo" style="font-size:clamp(1rem,4vw,1.8rem)">SOLAR_<span>OS</span></div>
-  <div class="subtitle">// МІСІЯ ПРОВАЛЕНА //</div>
-  <div class="panel">
-    <h2>☄️ КІНЕЦЬ ГРИ</h2>
-    <div class="score-label">ТВІЙ РАХУНОК</div>
-    <div class="score-big" id="finalScore">0</div>
-    <div id="bestBadge" class="best-tag" style="display:none">🏆 НОВИЙ РЕКОРД!</div>
-    <div class="score-label" style="margin-top:.8em">РЕКОРД: <span id="bestScore" style="color:var(--yellow)">0</span></div>
-    <button class="btn" id="restartBtn">↺ ЗНОВУ</button>
-  </div>
-</div>
 
-<script>
-// ═══════════════════════════════════════════════
-//  STARS BACKGROUND
-// ═══════════════════════════════════════════════
-(function() {
-  const c = document.getElementById('stars');
-  const ctx = c.getContext('2d');
-  let stars = [];
-
-  function resize() {
-    c.width = window.innerWidth;
-    c.height = window.innerHeight;
-    stars = Array.from({length: 180}, () => ({
-      x: Math.random() * c.width,
-      y: Math.random() * c.height,
-      r: Math.random() * 1.4 + .2,
-      a: Math.random(),
-      da: (Math.random() - .5) * .005
-    }));
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, c.width, c.height);
-    stars.forEach(s => {
-      s.a = Math.max(.05, Math.min(1, s.a + s.da));
-      if (s.a <= .05 || s.a >= 1) s.da *= -1;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(180,220,255,${s.a})`;
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-
-  window.addEventListener('resize', resize);
-  resize(); draw();
-})();
-
-// ═══════════════════════════════════════════════
-//  GAME ENGINE
-// ═══════════════════════════════════════════════
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-let W, H;
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
-// ── STATE ──
-let player, obstacles, score, lives, speed, frame, gameRunning, invincible, animId;
-let best = parseInt(localStorage.getItem('solarBest') || '0');
-
-// ── EMOJIS ──
-const OBSTACLE_TYPES = [
-  { emoji: '☄️', label: 'meteorit', w: 36, h: 36, speed: 1, points: 5 },
-  { emoji: '🪨', label: 'asteroid', w: 44, h: 44, speed: 0.7, points: 8 },
-  { emoji: '🚀', label: 'rocket',   w: 40, h: 40, speed: 1.4, points: 12 },
-  { emoji: '💫', label: 'star',     w: 34, h: 34, speed: 1.1, points: 6 },
-  { emoji: '🌑', label: 'moon',     w: 50, h: 50, speed: 0.5, points: 15 },
-  { emoji: '⚡', label: 'lightning',w: 30, h: 30, speed: 1.8, points: 20 },
-];
-
-const COMET_EMOJI = '☄️';
-
-// ── PARTICLE SYSTEM ──
-let particles = [];
-
-function spawnParticles(x, y, color, count = 10) {
-  for (let i = 0; i < count; i++) {
-    const angle = (Math.PI * 2 / count) * i + Math.random() * .5;
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * (Math.random() * 4 + 1),
-      vy: Math.sin(angle) * (Math.random() * 4 + 1),
-      life: 1, decay: Math.random() * .04 + .025,
-      r: Math.random() * 4 + 2,
-      color
-    });
-  }
-}
-
-function updateParticles() {
-  particles = particles.filter(p => p.life > 0);
-  particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    p.vx *= .96; p.vy *= .96;
-    p.life -= p.decay;
-  });
-}
-
-function drawParticles() {
-  particles.forEach(p => {
-    ctx.globalAlpha = p.life;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2);
-    ctx.fillStyle = p.color;
-    ctx.fill();
-  });
-  ctx.globalAlpha = 1;
-}
-
-// ── PLAYER ──
-function createPlayer() {
-  return {
-    x: W * .15,
-    y: H / 2,
-    w: 44, h: 44,
-    vx: 0, vy: 0,
-    trail: []
-  };
-}
-
-const PLAYER_SPEED = 5;
-const keys = {};
-
-document.addEventListener('keydown', e => keys[e.key] = true);
-document.addEventListener('keyup',   e => keys[e.key] = false);
-
-// ── MOBILE CONTROLS ──
-document.querySelectorAll('.ctrl-btn').forEach(btn => {
-  const dir = btn.dataset.dir;
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); keys[dir] = true; btn.classList.add('pressed'); });
-  btn.addEventListener('pointerup',   e => { e.preventDefault(); keys[dir] = false; btn.classList.remove('pressed'); });
-  btn.addEventListener('pointerleave',e => { keys[dir] = false; btn.classList.remove('pressed'); });
-});
-
-// ── OBSTACLE SPAWN ──
-function spawnObstacle() {
-  const type = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
-  const edge = Math.floor(Math.random() * 4); // 0=right, 1=top, 2=bottom, 3=left (rare)
-  let x, y, vx, vy;
-  const spd = (type.speed * speed) * (Math.random() * .5 + .75);
-
-  if (edge === 0) { // from right
-    x = W + 60; y = Math.random() * H;
-    const angle = Math.PI + (Math.random() - .5) * .6;
-    vx = Math.cos(angle) * spd; vy = Math.sin(angle) * spd;
-  } else if (edge === 1) { // from top
-    x = Math.random() * W; y = -60;
-    const angle = Math.PI/2 + (Math.random() - .5) * .6;
-    vx = Math.cos(angle) * spd; vy = Math.sin(angle) * spd;
-  } else if (edge === 2) { // from bottom
-    x = Math.random() * W; y = H + 60;
-    const angle = -Math.PI/2 + (Math.random() - .5) * .6;
-    vx = Math.cos(angle) * spd; vy = Math.sin(angle) * spd;
-  } else { // from left (rare)
-    x = -60; y = Math.random() * H;
-    const angle = (Math.random() - .5) * .6;
-    vx = Math.cos(angle) * spd; vy = Math.sin(angle) * spd;
-  }
-
-  obstacles.push({ ...type, x, y, vx, vy, rot: 0, rotSpeed: (Math.random()-.5)*.08 });
-}
-
-// ── DRAW EMOJI (cached offscreen) ──
-const emojiCache = {};
-function getEmojiCanvas(emoji, size) {
-  const key = `${emoji}_${size}`;
-  if (emojiCache[key]) return emojiCache[key];
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  const cx = c.getContext('2d');
-  cx.font = `${size * .85}px serif`;
-  cx.textAlign = 'center'; cx.textBaseline = 'middle';
-  cx.fillText(emoji, size/2, size/2);
-  emojiCache[key] = c;
-  return c;
-}
-
-function drawEmoji(emoji, x, y, size, rot = 0) {
-  const ec = getEmojiCanvas(emoji, size);
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(rot);
-  ctx.drawImage(ec, -size/2, -size/2);
-  ctx.restore();
-}
-
-// ── COMET TRAIL ──
-function updateTrail() {
-  player.trail.unshift({ x: player.x, y: player.y });
-  if (player.trail.length > 18) player.trail.pop();
-}
-
-function drawTrail() {
-  for (let i = player.trail.length - 1; i >= 0; i--) {
-    const t = player.trail[i];
-    const alpha = (1 - i / player.trail.length) * 0.55;
-    const r = (1 - i / player.trail.length) * 10 + 2;
-    const grad = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, r);
-    grad.addColorStop(0, `rgba(0,229,255,${alpha})`);
-    grad.addColorStop(1, `rgba(0,229,255,0)`);
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, r, 0, Math.PI*2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-  }
-}
-
-// ── COLLISION ──
-function circleHit(ax, ay, aw, bx, by, bw) {
-  const dx = ax - bx, dy = ay - by;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  return dist < (aw/2 * .65) + (bw/2 * .65);
-}
-
-// ── FLASH ──
-function flashHit() {
-  const f = document.getElementById('flash');
-  f.classList.add('active');
-  setTimeout(() => f.classList.remove('active'), 150);
-}
-
-// ── UPDATE LIVES ──
-function updateLivesDisplay() {
-  document.getElementById('livesDisplay').textContent = '❤️'.repeat(Math.max(0, lives));
-}
-
-// ── SCORE ──
-function updateScore(pts) {
-  score += pts;
-  document.getElementById('scoreVal').textContent = score;
-}
-
-// ── SPEED ──
-function updateSpeedUI() {
-  const pct = Math.min(100, ((speed - 3) / 9) * 100);
-  document.getElementById('speedFillInner').style.width = pct + '%';
-  document.getElementById('speedFillInner').style.background =
-    speed > 9 ? '#ff6b35' : speed > 6 ? '#ffd60a' : '#00e5ff';
-  document.getElementById('speedLabel').textContent = speed.toFixed(1) + 'x';
-}
-
-// ── GAME LOOP ──
-let spawnTimer = 0, spawnInterval = 70;
-let scoreTimer = 0;
-
-function gameLoop() {
-  if (!gameRunning) return;
-  ctx.clearRect(0, 0, W, H);
-
-  frame++;
-  scoreTimer++;
-  spawnTimer++;
-
-  // Speed up
-  speed = 3 + frame / 1200;
-  updateSpeedUI();
-
-  // Passive score
-  if (scoreTimer % 30 === 0) updateScore(1);
-
-  // Spawn rate scales with speed
-  spawnInterval = Math.max(20, 70 - speed * 3.5);
-  if (spawnTimer >= spawnInterval) {
-    spawnObstacle();
-    spawnTimer = 0;
-  }
-
-  // ── PLAYER MOVEMENT ──
-  if (keys['ArrowUp'] || keys['w'] || keys['W'] || keys['up'])    player.vy -= 1;
-  if (keys['ArrowDown'] || keys['s'] || keys['S'] || keys['down']) player.vy += 1;
-  if (keys['ArrowLeft'] || keys['a'] || keys['A'] || keys['left']) player.vx -= 1;
-  if (keys['ArrowRight'] || keys['d'] || keys['D'] || keys['right'])player.vx += 1;
-
-  player.vx = Math.max(-PLAYER_SPEED, Math.min(PLAYER_SPEED, player.vx));
-  player.vy = Math.max(-PLAYER_SPEED, Math.min(PLAYER_SPEED, player.vy));
-  player.vx *= .82;
-  player.vy *= .82;
-
-  const hudH = 48;
-  player.x = Math.max(player.w/2, Math.min(W - player.w/2, player.x + player.vx));
-  player.y = Math.max(player.h/2 + hudH, Math.min(H - player.h/2, player.y + player.vy));
-
-  updateTrail();
-
-  // ── OBSTACLES ──
-  obstacles.forEach(o => {
-    o.x += o.vx; o.y += o.vy;
-    o.rot += o.rotSpeed;
-  });
-
-  // Remove off-screen
-  obstacles = obstacles.filter(o =>
-    o.x > -120 && o.x < W+120 && o.y > -120 && o.y < H+120
-  );
-
-  // ── DRAW TRAIL ──
-  drawTrail();
-
-  // ── DRAW OBSTACLES ──
-  obstacles.forEach(o => {
-    drawEmoji(o.emoji, o.x, o.y, o.w, o.rot);
-  });
-
-  // ── DRAW PLAYER ──
-  if (invincible && Math.floor(frame/5) % 2 === 0) {
-    // blink
-  } else {
-    // Glow ring
-    const glowR = player.w * .7;
-    const grd = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, glowR);
-    grd.addColorStop(0, 'rgba(0,229,255,0.18)');
-    grd.addColorStop(1, 'rgba(0,229,255,0)');
-    ctx.beginPath(); ctx.arc(player.x, player.y, glowR, 0, Math.PI*2);
-    ctx.fillStyle = grd; ctx.fill();
-
-    drawEmoji(COMET_EMOJI, player.x, player.y, player.w);
-  }
-
-  // ── PARTICLES ──
-  updateParticles();
-  drawParticles();
-
-  // ── COLLISION CHECK ──
-  if (!invincible) {
-    for (const o of obstacles) {
-      if (circleHit(player.x, player.y, player.w, o.x, o.y, o.w)) {
-        lives--;
-        updateLivesDisplay();
-        flashHit();
-        spawnParticles(player.x, player.y, '#ff6b35', 14);
-        o.x = -200; // remove obstacle
-        invincible = true;
-        setTimeout(() => invincible = false, 1800);
-
-        if (lives <= 0) {
-          endGame();
-          return;
-        }
-        break;
-      }
-    }
-  }
-
-  animId = requestAnimationFrame(gameLoop);
-}
-
-// ── START ──
-function startGame() {
-  player = createPlayer();
-  obstacles = [];
-  particles = [];
-  score = 0;
-  lives = 3;
-  speed = 3;
-  frame = 0;
-  spawnTimer = 0;
-  scoreTimer = 0;
-  invincible = false;
-  gameRunning = true;
-
-  document.getElementById('scoreVal').textContent = '0';
-  updateLivesDisplay();
-  document.getElementById('hud').style.display = 'flex';
-  document.getElementById('speedBar').style.display = 'flex';
-
-  // hide screens
-  document.getElementById('startScreen').classList.add('hidden');
-  document.getElementById('gameOverScreen').classList.add('hidden');
-
-  gameLoop();
-}
-
-// ── END ──
-function endGame() {
-  gameRunning = false;
-  cancelAnimationFrame(animId);
-
-  document.getElementById('hud').style.display = 'none';
-  document.getElementById('speedBar').style.display = 'none';
-
-  const isNew = score > best;
-  if (isNew) { best = score; localStorage.setItem('solarBest', best); }
-
-  document.getElementById('finalScore').textContent = score;
-  document.getElementById('bestScore').textContent = best;
-  document.getElementById('bestBadge').style.display = isNew ? 'inline-block' : 'none';
-
-  const screen = document.getElementById('gameOverScreen');
-  screen.classList.remove('hidden');
-  spawnParticles(W/2, H/2, '#ffd60a', 24);
-}
-
-// ── BUTTONS ──
-document.getElementById('startBtn').addEventListener('click', startGame);
-document.getElementById('restartBtn').addEventListener('click', startGame);
-
-// Update best on start screen
-document.getElementById('bestScore').textContent = best;
-</script>
-</body>
-</html>
