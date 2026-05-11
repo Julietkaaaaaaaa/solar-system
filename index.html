@@ -1,115 +1,157 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar System Explorer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+(function() {
+    // 1. Пошук елементів з твого HTML
+    const gameSection = document.querySelector('#game-view .relative');
+    const initBtn = gameSection.querySelector('button');
+    const placeholderContent = gameSection.innerHTML; // Зберігаємо заглушку
 
-</head>
-<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+    let gameActive = false;
+    let score = 0;
+    let lives = 3;
+    let frameCount = 0;
+    
+    // Налаштування об'єктів
+    let rocket = { x: 50, y: 150, w: 40, h: 25, speed: 6 };
+    let enemies = [];
+    let particles = [];
+    let keys = {};
 
-    <nav class="bg-black/80 backdrop-blur-xl border-b border-cyan-900/50 fixed w-full z-50 top-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <div class="flex-shrink-0 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full border-2 border-cyan-400 shadow-[0_0_15px_#22d3ee]"></div>
-                    <span class="font-sci-fi font-bold text-xl tracking-[0.2em] text-cyan-400">SOLAR_OS</span>
-                </div>
-                
-                <div class="hidden md:flex items-center space-x-8 font-sci-fi text-sm tracking-widest">
-                    <a href="#scene-container" class="text-gray-400 hover:text-cyan-300 transition duration-300">СИСТЕМА</a>
-                    <a href="#game-view" class="text-gray-400 hover:text-cyan-300 transition duration-300">ГРА</a>
-                    <a href="#catalog-view" class="text-cyan-400 border-b-2 border-cyan-400 pb-1">НЕБЕСНІ ТІЛА</a>
-                </div>
+    // Створення Canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-                <div class="hidden md:flex items-center gap-2">
-                    <input type="text" id="username-input" placeholder="ВВЕДІТЬ ІМ'Я..." class="bg-gray-900/50 border border-cyan-900 text-cyan-400 text-xs font-sci-fi px-3 py-1 rounded focus:outline-none focus:border-cyan-400 transition w-40">
-                    <button id="greet-btn" class="font-sci-fi text-xs text-black bg-cyan-500 px-3 py-1 rounded hover:bg-cyan-400 transition">ВХІД</button>
-                    <span id="greeting-message" class="hidden font-sci-fi text-xs text-cyan-300 ml-2"></span>
-                </div>
+    function initCanvas() {
+        canvas.width = gameSection.clientWidth;
+        canvas.height = 400; // Фіксована висота як у твоєму HTML
+        canvas.style.display = 'block';
+    }
 
-                <div class="md:hidden flex items-center">
-                    <button id="burger-btn" class="text-cyan-400 hover:text-white focus:outline-none">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
+    // Слухачі клавіш
+    window.addEventListener('keydown', e => keys[e.code] = true);
+    window.addEventListener('keyup', e => keys[e.code] = false);
 
-        <div id="mobile-menu" class="hidden absolute top-20 left-0 w-full bg-black/95 border-b border-cyan-900/50 flex-col items-center py-6 space-y-6 font-sci-fi z-40 md:hidden backdrop-blur-xl">
-            <a href="#scene-container" class="mobile-link text-gray-400 hover:text-cyan-300 text-lg">СИСТЕМА</a>
-            <a href="#game-view" class="mobile-link text-gray-400 hover:text-cyan-300 text-lg">ГРА</a>
-            <a href="#catalog-view" class="mobile-link text-cyan-400 text-lg">НЕБЕСНІ ТІЛА</a>
-        </div>
-    </nav>
-    <main class="mt-20 w-full flex-grow">
-        <section id="scene-container" class="w-full h-[85vh] bg-black overflow-hidden relative cursor-grab active:cursor-grabbing border-b border-cyan-900/50">
-            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 pointer-events-none"></div>
-            <div id="universe" class="absolute top-1/2 left-1/2 w-0 h-0 preserve-3d"></div>
-            <div class="absolute bottom-8 left-1/2 w-full text-center -translate-x-1/2 text-cyan-500/50 font-sci-fi text-[10px] sm:text-xs tracking-[0.15em] pointer-events-none animate-pulse px-4">
-                <span class="hidden md:inline">
-                    [ ТЯГНІТЬ МИШКОЮ ДЛЯ ОБЕРТАННЯ • CTRL + СКРОЛ ДЛЯ МАСШТАБУВАННЯ ]
-                </span>
-                
-                <span class="inline md:hidden">
-                    [ ТЯГНІТЬ ПАЛЬЦЕМ ДЛЯ ОБЕРТАННЯ • ЩИПОК ДЛЯ ЗУМУ ]
-                </span>
-            </div>
-        </section>
+    function spawnEnemy() {
+        const size = 20 + Math.random() * 20;
+        enemies.push({
+            x: canvas.width + 50,
+            y: Math.random() * (canvas.height - 40),
+            w: size,
+            h: size,
+            speed: 3 + (score / 100) + Math.random() * 2,
+            rot: 0,
+            rotSpeed: Math.random() * 0.1
+        });
+    }
 
-        <section id="catalog-view" class="max-w-7xl mx-auto px-4 py-16">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="h-8 w-1 bg-cyan-500 shadow-[0_0_10px_#06b6d4]"></div>
-                    <h3 class="font-sci-fi text-2xl text-white tracking-widest uppercase">Небесні тіла</h3>
-                </div>
-                <div class="relative w-full md:w-64">
-                    <input type="text" id="search-input" placeholder="ПОШУК ОБ'ЄКТА..." class="w-full bg-gray-950/60 border border-cyan-900 text-cyan-300 text-sm font-sci-fi px-4 py-2 pl-10 rounded focus:border-cyan-400 focus:outline-none transition neon-border">
-                    <svg class="w-4 h-4 text-cyan-600 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-            </div>
-            
-            <div id="categories-container" class="flex flex-wrap gap-3 mb-10 border-b border-gray-900 pb-6">
-                <button class="filter-btn font-sci-fi text-xs tracking-widest px-4 py-2 rounded bg-cyan-900/30 text-cyan-400 border border-cyan-500 neon-border active" data-filter="all">ВСІ</button>
-                <button class="filter-btn font-sci-fi text-xs tracking-widest px-4 py-2 rounded bg-gray-900/50 text-gray-400 border border-gray-800 hover:text-cyan-300 hover:border-cyan-800 transition" data-filter="planets">ПЛАНЕТИ</button>
-                <button class="filter-btn font-sci-fi text-xs tracking-widest px-4 py-2 rounded bg-gray-900/50 text-gray-400 border border-gray-800 hover:text-cyan-300 hover:border-cyan-800 transition" data-filter="dwarf-planets">КАРЛИКОВІ ПЛАНЕТИ</button>
-                <button class="filter-btn font-sci-fi text-xs tracking-widest px-4 py-2 rounded bg-gray-900/50 text-gray-400 border border-gray-800 hover:text-cyan-300 hover:border-cyan-800 transition" data-filter="satellites">СУПУТНИКИ</button>
-                <button class="filter-btn font-sci-fi text-xs tracking-widest px-4 py-2 rounded bg-gray-900/50 text-gray-400 border border-gray-800 hover:text-cyan-300 hover:border-cyan-800 transition" data-filter="asteroids-comets">АСТЕРОЇДИ ТА КОМЕТИ</button>
-                <button class="filter-btn font-sci-fi text-xs tracking-widest px-4 py-2 rounded bg-gray-900/50 text-gray-400 border border-gray-800 hover:text-cyan-300 hover:border-cyan-800 transition" data-filter="stars">ЗІРКИ</button>
-            </div>
-            
-            <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
-        </section>
-        <section id="game-view" class="w-full bg-gray-950 border-t border-b border-gray-900 py-16">
-            <div class="max-w-5xl mx-auto px-4 text-center">
-                <div class="flex justify-center items-center gap-4 mb-8">
-                    <div class="h-1 w-12 bg-cyan-500"></div>
-                    <h3 class="font-sci-fi text-3xl text-white tracking-[0.3em]">ГРА</h3>
-                    <div class="h-1 w-12 bg-cyan-500"></div>
-                </div>
-                <div class="relative bg-black border-2 border-cyan-900 rounded-lg overflow-hidden h-[400px] flex flex-col items-center justify-center neon-border">
-                    <svg class="w-16 h-16 text-cyan-600 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <h4 class="font-sci-fi text-xl text-cyan-400 tracking-widest mb-2">МОДУЛЬ ГРИ ВІДКЛЮЧЕНО</h4>
-                    <p class="text-sm text-gray-500 font-mono">Очікування завантаження скриптів аркадної гри...</p>
-                    <button class="mt-6 font-sci-fi text-xs text-black bg-cyan-600 px-6 py-2 rounded hover:bg-cyan-400 transition">ІНІЦІАЛІЗУВАТИ</button>
-                </div>
-            </div>
-        </section>
-    </main>
+    function update() {
+        if (!gameActive) return;
 
-    <footer class="py-8 bg-black border-t border-cyan-900/50 text-center font-sci-fi tracking-widest">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
-            <p class="text-cyan-500 text-sm">&copy; 2026 Solar_OS System</p>
-            <p class="text-xs text-gray-500 uppercase">Проект створено в рамках курсу Web-програмування</p>
-            <p class="text-xs text-gray-500 uppercase">Команда розробників: </p>
-        </div>
-    </footer>
-    <script src="solar-system.js"></script>
-    <script src="script.js"></script>
-    <script src="game.js"></script>
-</body>
-</html>
+        // Керування (WASD / Стрілки)
+        if ((keys['ArrowUp'] || keys['KeyW']) && rocket.y > 0) rocket.y -= rocket.speed;
+        if ((keys['ArrowDown'] || keys['KeyS']) && rocket.y < canvas.height - rocket.h) rocket.y += rocket.speed;
+
+        // Поява ворогів (комети/астероїди)
+        if (frameCount % 60 === 0) spawnEnemy();
+
+        enemies.forEach((en, i) => {
+            en.x -= en.speed;
+            en.rot += en.rotSpeed;
+
+            // Перевірка колізії
+            if (rocket.x < en.x + en.w - 5 && rocket.x + rocket.w > en.x + 5 &&
+                rocket.y < en.y + en.h - 5 && rocket.y + rocket.h > en.y + 5) {
+                enemies.splice(i, 1);
+                lives--;
+                if (lives <= 0) gameOver();
+            }
+
+            // Вихід за межі
+            if (en.x < -50) {
+                enemies.splice(i, 1);
+                score += 10;
+            }
+        });
+
+        frameCount++;
+    }
+
+    function draw() {
+        if (!gameActive) return;
+
+        // Очищення фону
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Малювання зірок на фоні
+        ctx.fillStyle = '#fff';
+        for(let i=0; i<20; i++) {
+            ctx.fillRect((Math.sin(frameCount/50 + i)*500 + 500) % canvas.width, (i*30) % canvas.height, 2, 2);
+        }
+
+        // Малювання ракети (Стиль Cyan як у Solar_OS)
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00e5ff';
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillRect(rocket.x, rocket.y, rocket.w, rocket.h);
+        
+        // Малювання вогню
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(rocket.x - 10, rocket.y + 5, 10, rocket.h - 10);
+
+        // Малювання ворогів
+        ctx.shadowColor = '#ff3300';
+        enemies.forEach(en => {
+            ctx.save();
+            ctx.translate(en.x + en.w/2, en.y + en.h/2);
+            ctx.rotate(en.rot);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-en.w/2, -en.h/2, en.w, en.h);
+            ctx.restore();
+        });
+
+        // Інтерфейс (HUD)
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#00e5ff';
+        ctx.font = '14px Orbitron';
+        ctx.fillText(`SCORE: ${score}`, 20, 30);
+        ctx.fillText(`LIVES: ${'❤️'.repeat(lives)}`, canvas.width - 120, 30);
+
+        requestAnimationFrame(() => {
+            update();
+            draw();
+        });
+    }
+
+    function gameOver() {
+        gameActive = false;
+        alert(`СИСТЕМНА ПОМИЛКА: Ракета знищена! \nВаш рахунок: ${score}`);
+        // Повертаємо початковий стан
+        gameSection.innerHTML = placeholderContent;
+        // Переприв'язуємо подію до нової кнопки, що з'явилася
+        const newBtn = gameSection.querySelector('button');
+        newBtn.onclick = startGame;
+        // Скидаємо змінні
+        score = 0;
+        lives = 3;
+        enemies = [];
+    }
+
+    function startGame() {
+        gameActive = true;
+        initCanvas();
+        gameSection.innerHTML = ''; // Видаляємо текст і іконки
+        gameSection.appendChild(canvas);
+        draw();
+    }
+
+    // Прив'язка кнопки
+    if (initBtn) {
+        initBtn.onclick = startGame;
+    }
+
+    // Оновлення розміру при зміні вікна
+    window.addEventListener('resize', () => {
+        if (gameActive) initCanvas();
+    });
+
+})();
 
