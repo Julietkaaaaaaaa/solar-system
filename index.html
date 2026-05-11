@@ -120,23 +120,21 @@ let W, H, player, obstacles, stars, score, lives, gameRunning, speed, invincible
 const keys = {};
 
 function initStars() {
-  stars = Array.from({length: 150}, () => ({
+  stars = Array.from({length: 100}, () => ({
     x: Math.random() * W,
     y: Math.random() * H,
-    size: Math.random() * 2,
-    speed: Math.random() * 3 + 1
+    size: Math.random() * 2 + 1,
+    speed: Math.random() * 2 + 0.5
   }));
 }
 
 function updateStars() {
   starCtx.clearRect(0, 0, W, H);
-  starCtx.fillStyle = "white";
+  starCtx.fillStyle = "#ffffff";
   stars.forEach(s => {
     s.x -= s.speed * (speed / 2);
     if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
-    starCtx.beginPath();
-    starCtx.arc(s.x, s.y, s.size, 0, Math.PI*2);
-    starCtx.fill();
+    starCtx.fillRect(s.x, s.y, s.size, s.size);
   });
 }
 
@@ -152,6 +150,11 @@ window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
 
 let touchX = null, touchY = null;
+window.addEventListener('touchstart', e => {
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+}, {passive: false});
+
 window.addEventListener('touchmove', e => {
   touchX = e.touches[0].clientX;
   touchY = e.touches[0].clientY;
@@ -159,8 +162,7 @@ window.addEventListener('touchmove', e => {
 }, {passive: false});
 
 function startGame() {
-  // Ракета тепер стартує зліва (x: 80) і вона стала більшою (w: 60)
-  player = { x: 80, y: H/2, w: 60, h: 60, trail: [] };
+  player = { x: 100, y: H/2, w: 60, h: 60, trail: [] };
   obstacles = [];
   score = 0;
   lives = 3;
@@ -179,13 +181,13 @@ function updateLivesUI() {
 }
 
 function spawnObstacle() {
-  const emojis = ['☄️', '🪨', '🛸', '🌑'];
-  if (Math.random() < 0.05) {
+  const emojis = ['☄️', '🪨', '🛸', '👾'];
+  if (Math.random() < 0.04) {
     obstacles.push({
       x: W + 100,
-      y: Math.random() * H,
+      y: Math.random() * (H - 50) + 25,
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      size: 55, // Збільшили розмір перешкод, щоб їх було краще видно
+      size: 50,
       speed: (Math.random() * 3 + 2) + speed
     });
   }
@@ -194,59 +196,55 @@ function spawnObstacle() {
 function loop() {
   if (!gameRunning) return;
 
+  // Очищення екрану без жодних залишкових ефектів
   ctx.clearRect(0, 0, W, H);
   updateStars();
   spawnObstacle();
 
-  // Рух клавіатурою
-  if (keys['ArrowUp'] || keys['w']) player.y -= 9;
-  if (keys['ArrowDown'] || keys['s']) player.y += 9;
-  if (keys['ArrowLeft'] || keys['a']) player.x -= 9;
-  if (keys['ArrowRight'] || keys['d']) player.x += 9;
+  // Керування
+  if (keys['ArrowUp'] || keys['w']) player.y -= 8;
+  if (keys['ArrowDown'] || keys['s']) player.y += 8;
+  if (keys['ArrowLeft'] || keys['a']) player.x -= 8;
+  if (keys['ArrowRight'] || keys['d']) player.x += 8;
 
-  // Рух пальцем
   if (touchX !== null) {
-    player.x += (touchX - player.x) * 0.15;
-    player.y += (touchY - player.y) * 0.15;
+    player.x += (touchX - player.x) * 0.12;
+    player.y += (touchY - player.y) * 0.12;
   }
 
-  // Обмежуємо ракету лівою частиною екрана (не далі 40% ширини)
-  player.x = Math.max(40, Math.min(W * 0.4, player.x));
-  player.y = Math.max(60, Math.min(H - 40, player.y));
+  // Обмеження позиції ракети
+  player.x = Math.max(50, Math.min(W * 0.45, player.x));
+  player.y = Math.max(80, Math.min(H - 50, player.y));
 
-  // Яскравий шлейф
+  // 1. ШЛЕЙФ (малюємо першим, щоб він був ПІД ракетою)
   player.trail.unshift({x: player.x, y: player.y});
-  if (player.trail.length > 20) player.trail.pop();
+  if (player.trail.length > 15) player.trail.pop();
   player.trail.forEach((t, i) => {
-    ctx.fillStyle = `rgba(255, 140, 0, ${1 - i/20})`;
+    ctx.globalAlpha = (1 - i/15);
+    ctx.fillStyle = "#ffaa00";
     ctx.beginPath();
-    ctx.arc(t.x - 30 - i, t.y, 18 - i/1.2, 0, Math.PI*2);
+    ctx.arc(t.x - 35 - i*2, t.y, 12 - i/1.5, 0, Math.PI*2);
     ctx.fill();
   });
 
-  // Малюємо РАКЕТУ
-  ctx.save();
-  ctx.font = "60px serif"; // Велика ракета
+  // 2. РАКЕТА (Малюємо максимально чітко)
+  ctx.globalAlpha = 1.0;
+  ctx.font = "60px Arial"; // Використовуємо системний шрифт для кращої підтримки емодзі
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.globalAlpha = 1.0; // Максимальна яскравість
 
-  // Неонове світіння навколо ракети
-  ctx.shadowBlur = 25;
-  ctx.shadowColor = "rgba(0, 229, 255, 0.9)";
-
-  if (!invincible || Math.floor(Date.now()/100) % 2) {
+  if (!invincible || Math.floor(Date.now()/150) % 2) {
     ctx.fillText("🚀", player.x, player.y);
   }
-  ctx.restore();
 
-  // Перешкоди
+  // 3. ПЕРЕШКОДИ
   obstacles.forEach((o, index) => {
     o.x -= o.speed;
-    ctx.font = `${o.size}px serif`;
-    ctx.globalAlpha = 1.0; // Яскраві перешкоди
+    ctx.globalAlpha = 1.0;
+    ctx.font = "50px Arial";
     ctx.fillText(o.emoji, o.x, o.y);
 
+    // Логіка зіткнення
     let dx = player.x - o.x;
     let dy = player.y - o.y;
     let distance = Math.sqrt(dx*dx + dy*dy);
@@ -256,38 +254,34 @@ function loop() {
       updateLivesUI();
       triggerHit();
       obstacles.splice(index, 1);
-      if (lives <= 0) {
-        gameOver();
-      } else {
+      if (lives <= 0) gameOver();
+      else {
         invincible = true;
         setTimeout(() => invincible = false, 2000);
       }
     }
 
-    if (o.x < -100) {
-      obstacles.splice(index, 1);
-      score += 10;
-      document.getElementById('scoreDisplay').textContent = `SCORE: ${score}`;
-    }
+    if (o.x < -100) obstacles.splice(index, 1);
   });
 
-  speed += 0.001;
+  score += 1;
+  if (score % 10 === 0) {
+      document.getElementById('scoreDisplay').textContent = `SCORE: ${Math.floor(score/10)}`;
+  }
+  
+  speed += 0.0005;
   requestAnimationFrame(loop);
 }
 
 function triggerHit() {
   document.getElementById('flash').classList.add('active');
-  document.body.classList.add('shake');
-  setTimeout(() => {
-    document.getElementById('flash').classList.remove('active');
-    document.body.classList.remove('shake');
-  }, 300);
+  setTimeout(() => document.getElementById('flash').classList.remove('active'), 200);
 }
 
 function gameOver() {
   gameRunning = false;
   document.getElementById('gameOverScreen').classList.remove('hidden');
-  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalScore').textContent = Math.floor(score/10);
 }
 
 document.getElementById('startBtn').onclick = startGame;
