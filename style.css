@@ -1,284 +1,72 @@
-/* --- ОСНОВНІ НАЛАШТУВАННЯ --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
 :root {
     --cyan: #00e5ff;
-    --cyan-glow: rgba(0, 229, 255, 0.5);
-    --bg-dark: #010409;
-    --card-bg: rgba(13, 17, 23, 0.8);
-    --border: rgba(0, 229, 255, 0.2);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    --cyan-dark: #0891b2;
 }
 
 body {
-    background-color: var(--bg-dark);
+    background-color: #020617;
     color: white;
-    font-family: 'Orbitron', sans-serif; /* Для заголовків */
-    overflow-x: hidden;
+    font-family: 'Orbitron', sans-serif;
 }
 
-/* --- НАВІГАЦІЯ (image_41de02.png) --- */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 50px;
-    background: rgba(0, 0, 0, 0.9);
-    border-bottom: 1px solid var(--border);
-    position: fixed;
-    top: 0; width: 100%; z-index: 1000;
+/* Шрифти */
+.font-sci-fi {
+    font-family: 'Orbitron', sans-serif;
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--cyan);
-    font-weight: 900;
-    letter-spacing: 3px;
+/* Акцентна лінія зліва (Небесні тіла) */
+.header-accent {
+    border-left: 4px solid var(--cyan);
+    padding-left: 1rem;
+    box-shadow: -5px 0 10px rgba(0, 229, 255, 0.2);
 }
 
-.logo-circle {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--cyan);
-    border-radius: 50%;
+/* Горизонтальні лінії біля заголовка ГРА */
+.h-line {
+    height: 2px;
+    width: 60px;
+    background: var(--cyan);
     box-shadow: 0 0 10px var(--cyan);
 }
 
-.nav-links a {
-    color: #888;
-    text-decoration: none;
-    font-size: 12px;
-    margin: 0 20px;
+/* Неонова рамка */
+.neon-border {
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.05);
+}
+
+/* Картка інструкцій у грі */
+.instruction-box {
+    background: rgba(0, 18, 30, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.1);
+    border-radius: 12px;
+}
+
+/* Кнопка ініціалізації (як на скриншоті) */
+.init-btn {
+    background: var(--cyan);
+    color: black;
+    font-weight: 900;
     letter-spacing: 2px;
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.5);
     transition: 0.3s;
 }
 
-.nav-links a.active {
-    color: var(--cyan);
-    border-bottom: 2px solid var(--cyan);
-    padding-bottom: 5px;
+.init-btn:hover {
+    box-shadow: 0 0 45px var(--cyan);
+    transform: scale(1.05);
 }
 
-.nav-auth {
-    display: flex;
-    gap: 10px;
-}
-
-.nav-input {
-    background: #0d1117;
-    border: 1px solid var(--border);
-    color: var(--cyan);
-    padding: 8px 15px;
-    font-size: 10px;
-    border-radius: 4px;
-}
-
-.login-btn {
-    background: var(--cyan);
-    color: black;
-    border: none;
-    padding: 8px 20px;
-    font-weight: bold;
-    font-size: 11px;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-/* --- НЕБЕСНІ ТІЛА (image_37d99b.jpg) --- */
-.section-container {
-    max-width: 1200px;
-    margin: 120px auto 50px;
-    padding: 0 20px;
-}
-
-.title-with-accent {
-    border-left: 4px solid var(--cyan);
-    padding-left: 15px;
-    font-size: 28px;
-    letter-spacing: 4px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 30px;
-    text-transform: uppercase;
-}
-
-.search-input {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--cyan);
-    padding: 12px 40px;
-    border-radius: 6px;
-    width: 350px;
-    font-size: 12px;
-}
-
-.filters {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #666;
-    padding: 10px 20px;
-    font-size: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    letter-spacing: 1px;
-}
-
-.filter-btn.active {
-    border-color: var(--cyan);
-    color: var(--cyan);
-    background: rgba(0, 229, 255, 0.05);
-}
-
-/* --- КАРТКИ ПЛАНЕТ (image_37c716.jpg) --- */
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px;
-}
-
+/* Картки планет */
 .planet-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 15px;
-    padding: 30px 20px;
-    text-align: center;
+    background: rgba(13, 17, 23, 0.8);
+    border: 1px solid rgba(0, 229, 255, 0.1);
     transition: 0.3s;
 }
 
 .planet-card:hover {
     border-color: var(--cyan);
     box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
-}
-
-.planet-card h4 {
-    margin-top: 20px;
-    font-size: 18px;
-}
-
-.planet-card p {
-    color: #666;
-    font-size: 11px;
-    margin: 15px 0 25px;
-    line-height: 1.5;
-}
-
-.show-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--cyan);
-    padding: 10px;
-    width: 100%;
-    border-radius: 5px;
-    font-size: 10px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.show-btn:hover {
-    background: var(--cyan);
-    color: black;
-}
-
-/* --- СЕКЦІЯ ГРА (image_41cf7c.png) --- */
-.game-section {
-    padding: 100px 0;
-    text-align: center;
-}
-
-.game-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    margin-bottom: 60px;
-}
-
-.header-line {
-    height: 2px;
-    width: 80px;
-    background: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan);
-}
-
-.game-header h2 {
-    font-size: 36px;
-    letter-spacing: 15px;
-}
-
-.game-container-frame {
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 100px 50px;
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-.game-main-title {
-    font-size: 80px;
-    color: var(--cyan);
-    letter-spacing: 20px;
-    margin-bottom: 10px;
-    font-weight: 900;
-}
-
-.game-subtitle {
-    color: rgba(0, 229, 255, 0.4);
-    font-size: 14px;
-    letter-spacing: 6px;
-    margin-bottom: 60px;
-}
-
-.instruction-box {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border);
-    padding: 30px;
-    border-radius: 12px;
-    display: inline-block;
-    text-align: left;
-    margin-bottom: 60px;
-}
-
-.instr-title {
-    margin-bottom: 20px;
-    font-weight: bold;
-    font-size: 14px;
-    text-align: center;
-}
-
-.instr-row {
-    margin-bottom: 12px;
-    font-size: 13px;
-    color: #aaa;
-}
-
-.init-btn {
-    background: var(--cyan);
-    color: black;
-    border: none;
-    padding: 20px 80px;
-    border-radius: 50px;
-    font-weight: 900;
-    font-size: 14px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    box-shadow: 0 0 30px var(--cyan-glow);
-    transition: 0.4s;
-}
-
-.init-btn:hover {
-    box-shadow: 0 0 50px var(--cyan);
-    transform: scale(1.05);
 }
