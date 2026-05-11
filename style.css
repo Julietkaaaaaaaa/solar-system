@@ -2,55 +2,72 @@
 
 :root {
     --cyan: #00e5ff;
-    --cyan-dark: #0891b2;
+    --cyan-glow: rgba(0, 229, 255, 0.4);
+    --bg: #020617;
 }
 
 body {
-    background-color: #020617;
+    background-color: var(--bg);
     color: white;
     font-family: 'Orbitron', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
 }
 
-/* Шрифти */
-.font-sci-fi {
-    font-family: 'Orbitron', sans-serif;
+/* --- СОНЯЧНА СИСТЕМА --- */
+#universe {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
 }
 
-/* Акцентна лінія зліва (Небесні тіла) */
-.header-accent {
-    border-left: 4px solid var(--cyan);
-    padding-left: 1rem;
-    box-shadow: -5px 0 10px rgba(0, 229, 255, 0.2);
+.sun {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #fff700 0%, #ff8800 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 60px #ff8800, 0 0 20px #ff5500;
+    z-index: 10;
 }
 
-/* Горизонтальні лінії біля заголовка ГРА */
-.h-line {
-    height: 2px;
-    width: 60px;
-    background: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan);
-}
-
-/* Неонова рамка */
-.neon-border {
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.05);
-}
-
-/* Картка інструкцій у грі */
-.instruction-box {
-    background: rgba(0, 18, 30, 0.6);
+.orbit {
+    position: absolute;
     border: 1px solid rgba(0, 229, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 50%;
+    pointer-events: none;
 }
 
-/* Кнопка ініціалізації (як на скриншоті) */
+.planet {
+    position: absolute;
+    border-radius: 50%;
+    transform-origin: center;
+    transition: transform 0.1s linear;
+}
+
+/* --- ІНТЕРФЕЙС ГРИ (image_41cf7c.png) --- */
+.game-container {
+    background: #020617;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 40px;
+    padding: 60px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
 .init-btn {
     background: var(--cyan);
     color: black;
+    padding: 15px 50px;
+    border-radius: 50px;
     font-weight: 900;
     letter-spacing: 2px;
-    box-shadow: 0 0 25px rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 25px var(--cyan-glow);
+    cursor: pointer;
+    border: none;
     transition: 0.3s;
 }
 
@@ -59,54 +76,11 @@ body {
     transform: scale(1.05);
 }
 
-/* Картки планет */
-.planet-card {
-    background: rgba(13, 17, 23, 0.8);
+.instruction-box {
+    background: rgba(0, 229, 255, 0.05);
     border: 1px solid rgba(0, 229, 255, 0.1);
-    transition: 0.3s;
-}
-
-.planet-card:hover {
-    border-color: var(--cyan);
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
-}
-/* Виправлення форми планет */
-.planet {
-    position: absolute;
-    border-radius: 50%; /* Робимо ідеальне коло */
-    transform-style: preserve-3d;
-    transition: transform 0.5s ease;
-}
-
-/* Сяйво для Сонця */
-.sun {
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, #ffea00 0%, #ff9100 50%, #ff3c00 100%);
-    box-shadow: 0 0 60px #ff9100, 0 0 120px rgba(255, 145, 0, 0.4);
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* Орбіти (тонкі лінії як на скриншоті) */
-.orbit {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    border: 1px solid rgba(0, 229, 255, 0.15); /* Тонка блакитна лінія */
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none; /* Щоб не заважали мишці */
-}
-
-/* Тінь та об'єм для планет */
-.planet-sphere {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    position: relative;
-    box-shadow: inset -10px -10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(0, 229, 255, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: left;
+    display: inline-block;
 }
