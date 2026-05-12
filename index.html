@@ -91,26 +91,40 @@
                     <div class="h-1 w-12 bg-cyan-500"></div>
                 </div>
                 
-                <div id="game-container" class="relative bg-black border-2 border-cyan-900 rounded-lg overflow-hidden h-[400px] flex flex-col items-center justify-center neon-border">
-                    
-                    <canvas id="stars" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-                    <canvas id="gameCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
-
-                    <div id="hud" style="display:none;" class="absolute top-5 w-full flex justify-between px-10 text-cyan-400 font-sci-fi z-20 pointer-events-none">
-                        <div id="scoreDisplay" class="text-xs sm:text-sm tracking-widest">DISTANCE: 0m</div>
-                        <div id="livesDisplay" class="text-lg">❤️❤️❤️</div>
-                    </div>
-
- <div id="startScreen" class="relative z-10 flex flex-col items-center justify-center pointer-events-auto">
-    <h2 class="font-sci-fi text-4xl md:text-5xl text-white tracking-[0.4em] mb-12 animate-pulse shadow-cyan-500/50" style="text-shadow: 0 0 20px #22d3ee;">
-        КОСМІЧНА <span class="text-cyan-400">МІСІЯ</span>
-    </h2>
+             <div id="game-container" class="relative bg-black border-2 border-cyan-900 rounded-lg overflow-hidden h-[400px] flex flex-col items-center justify-center neon-border">
     
-    <button id="startBtn" class="font-sci-fi text-xl text-black bg-cyan-500 px-16 py-5 rounded-full hover:bg-cyan-400 transition shadow-[0_0_30px_rgba(34,211,238,0.5)] active:scale-95 uppercase tracking-[0.3em] font-bold">
-        ГРАТИ
-    </button>
+    <canvas id="stars" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+    <canvas id="gameCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+
+    <div id="hud" style="display:none;" class="absolute top-5 w-full flex justify-between px-10 text-cyan-400 font-sci-fi z-20 pointer-events-none">
+        <div id="scoreDisplay" class="text-xs sm:text-sm tracking-widest">DISTANCE: 0m</div>
+        <div id="livesDisplay" class="text-lg">❤️❤️❤️</div>
+    </div>
+
+    <div id="startScreen" class="relative z-10 flex flex-col items-center justify-center pointer-events-auto">
+        <h2 class="font-sci-fi text-4xl md:text-5xl text-white tracking-[0.4em] mb-12 animate-pulse" style="text-shadow: 0 0 20px #22d3ee;">
+            КОСМІЧНА <span class="text-cyan-400">МІСІЯ</span>
+        </h2>
+        
+        <button id="startBtn" class="font-sci-fi text-xl text-black bg-cyan-500 px-16 py-5 rounded-full hover:bg-cyan-400 transition shadow-[0_0_30px_rgba(34,211,238,0.5)] active:scale-95 uppercase tracking-[0.3em] font-bold">
+            ГРАТИ
+        </button>
+    </div>
+
+    <div id="gameOverScreen" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md">
+        <h2 class="font-sci-fi text-4xl text-red-500 tracking-[0.3em] mb-2" style="text-shadow: 0 0 15px #ef4444;">
+            МІСІЯ ПРОВАЛЕНА
+        </h2>
+        <p id="finalDistance" class="font-sci-fi text-cyan-400 text-xl mb-8 tracking-widest uppercase">
+            ДИСТАНЦІЯ: 0m
+        </p>
+        
+        <button id="restartBtn" class="font-sci-fi text-sm text-black bg-cyan-500 px-12 py-4 rounded-full hover:bg-cyan-400 transition shadow-[0_0_20px_rgba(34,211,238,0.4)] active:scale-95 uppercase tracking-widest font-bold">
+            ПОВТОРИТИ СПРОБУ
+        </button>
+    </div>
+
 </div>
-                </div>
             </div>
         </section>
     </main>
