@@ -1,5 +1,5 @@
 (function() {
-    console.log("SOLAR_OS: System ready.");
+    console.log("SOLAR_OS: Advanced Ignition Sequence Started.");
 
     const setup = () => {
         const startBtn = document.getElementById('startBtn');
@@ -11,25 +11,28 @@
 
         if (!startBtn || !canvas) return;
 
-        // ПАРАМЕТРИ ГРИ
-        let ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
+        
+        // Стан гри
         let gameRunning = false;
         let frame = 0;
         let lives = 3;
         let distance = 0;
         let speed = 5;
         let obstacles = [];
-        let player = { x: 50, y: 200, r: 15, targetY: 200 };
+        let player = { x: 80, y: 0, r: 15, targetY: 0 };
 
-        // Налаштування розмірів
+        // Адаптивність: підлаштовуємо розмір Canvas
         const resize = () => {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
+            player.y = canvas.height / 2;
+            player.targetY = canvas.height / 2;
         };
-        resize();
         window.addEventListener('resize', resize);
+        resize();
 
-        // КЕРУВАННЯ
+        // Керування (Миша та Тач)
         const moveHandler = (e) => {
             if (!gameRunning) return;
             const rect = canvas.getBoundingClientRect();
@@ -43,15 +46,105 @@
             e.preventDefault();
         }, { passive: false });
 
-        // ФУНКЦІЯ СТАРТУ
+        // Малювання РАКЕТИ
+        function drawRocket(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Анімований вогонь
+            const fireSize = 15 + Math.random() * 15;
+            const fireGrad = ctx.createLinearGradient(-10, 0, -10 - fireSize, 0);
+            fireGrad.addColorStop(0, '#ffaa00');
+            fireGrad.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = fireGrad;
+            ctx.beginPath();
+            ctx.moveTo(-10, -7);
+            ctx.lineTo(-10 - fireSize, 0);
+            ctx.lineTo(-10, 7);
+            ctx.fill();
+
+            // Корпус ракети
+            ctx.fillStyle = '#00e5ff';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00e5ff';
+            
+            // Тіло
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ніс (трикутник попереду)
+            ctx.beginPath();
+            ctx.moveTo(15, -10);
+            ctx.lineTo(28, 0);
+            ctx.lineTo(15, 10);
+            ctx.fill();
+
+            // Крила (плавники)
+            ctx.fillStyle = '#008b9b';
+            ctx.beginPath();
+            ctx.moveTo(-5, -10);
+            ctx.lineTo(-15, -15);
+            ctx.lineTo(-10, -5);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(-5, 10);
+            ctx.lineTo(-15, 15);
+            ctx.lineTo(-10, 5);
+            ctx.fill();
+
+            // Ілюмінатор
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(7, 0, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Малювання КОМЕТИ
+        function drawComet(o) {
+            ctx.save();
+            
+            // Хвіст комети (градієнт)
+            const tailLen = o.r * 4;
+            const grad = ctx.createLinearGradient(o.x, o.y, o.x + tailLen, o.y);
+            grad.addColorStop(0, 'rgba(255, 68, 68, 0.6)');
+            grad.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(o.x, o.y - o.r);
+            ctx.lineTo(o.x + tailLen, o.y);
+            ctx.lineTo(o.x, o.y + o.r);
+            ctx.fill();
+
+            // Ядро комети
+            ctx.fillStyle = '#555';
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Кратери на кометі
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(o.x - o.r/3, o.y - o.r/3, o.r/4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Запуск гри при натисканні кнопки
         startBtn.onclick = function(e) {
             e.preventDefault();
-            console.log("Ignition confirmed.");
+            console.log("Game Start Triggered");
             
             gameRunning = true;
             lives = 3;
             distance = 0;
             frame = 0;
+            speed = 5;
             obstacles = [];
             
             startScreen.style.setProperty('display', 'none', 'important');
@@ -61,52 +154,42 @@
             gameLoop();
         };
 
-        // ЦИКЛ ГРИ
+        // Головний ігровий цикл
         function gameLoop() {
             if (!gameRunning) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
             frame++;
             distance = Math.floor(frame / 5);
             scoreDisplay.textContent = `DISTANCE: ${distance}m`;
+            
+            // СКЛАДНІСТЬ: плавне пришвидшення гри
             speed = 5 + (frame / 1000);
 
-            // Плавний рух ракети за курсором
-            player.y += (player.targetY - player.y) * 0.1;
+            // Плавний рух за курсором
+            player.y += (player.targetY - player.y) * 0.12;
 
-            // Малюємо ракету
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00e5ff';
-            ctx.fillStyle = '#22d3ee';
-            ctx.beginPath();
-            ctx.moveTo(player.x + 25, player.y);
-            ctx.lineTo(player.x - 10, player.y - 12);
-            ctx.lineTo(player.x - 10, player.y + 12);
-            ctx.closePath();
-            ctx.fill();
-            ctx.shadowBlur = 0;
+            drawRocket(player.x, player.y);
 
-            // Генерація перешкод
-            if (frame % Math.max(20, Math.floor(60 - speed)) === 0) {
+            // Генерація комет (частота залежить від швидкості)
+            if (frame % Math.max(15, Math.floor(50 - speed)) === 0) {
                 obstacles.push({
-                    x: canvas.width + 50,
+                    x: canvas.width + 100,
                     y: Math.random() * canvas.height,
-                    r: 10 + Math.random() * 15,
-                    spd: speed + (Math.random() * 2)
+                    r: 10 + Math.random() * 20,
+                    spd: speed + (Math.random() * 3)
                 });
             }
 
-            // Оновлення перешкод
-            obstacles.forEach((o, i) => {
+            // Оновлення комет
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let o = obstacles[i];
                 o.x -= o.spd;
                 
-                // Малюємо комету
-                ctx.fillStyle = '#ff4444';
-                ctx.beginPath();
-                ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
-                ctx.fill();
+                drawComet(o);
 
-                // Перевірка зіткнення
+                // Колізія (зіткнення)
                 const dx = player.x - o.x;
                 const dy = player.y - o.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
@@ -115,24 +198,31 @@
                     obstacles.splice(i, 1);
                     lives--;
                     livesDisplay.textContent = '❤️'.repeat(Math.max(0, lives));
+                    
+                    // Ефект струсу при ударі
+                    canvas.classList.add('animate-pulse');
+                    setTimeout(() => canvas.classList.remove('animate-pulse'), 200);
+
                     if (lives <= 0) {
                         gameRunning = false;
-                        alert("МІСІЯ ПРОВАЛЕНА! Дистанція: " + distance + "м");
-                        location.reload();
+                        alert(`МІСІЯ ПРОВАЛЕНА!\nВаша дистанція: ${distance}м`);
+                        location.reload(); 
                     }
                 }
-            });
 
-            obstacles = obstacles.filter(o => o.x > -100);
+                // Видалення об'єктів за межами екрана
+                if (o.x < -100) obstacles.splice(i, 1);
+            }
+
             requestAnimationFrame(gameLoop);
         }
     };
 
-    // Чекаємо кнопку в DOM
-    const checkExist = setInterval(() => {
+    // Перевірка наявності кнопки перед ініціалізацією
+    const checkBtn = setInterval(() => {
         if (document.getElementById('startBtn')) {
             setup();
-            clearInterval(checkExist);
+            clearInterval(checkBtn);
         }
     }, 100);
 })();
