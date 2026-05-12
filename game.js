@@ -1,215 +1,215 @@
-(function() {
-    const cv = document.getElementById('cv');
-    const ctx = cv.getContext('2d');
-    const touchLayer = document.getElementById('touch-layer');
-    
-    let W, H, gameRunning = false, frame = 0, speed = 4;
-    let player = { x: 0, y: 0, r: 18, ft: 0 };
-    let stars = [], obstacles = [], lives = 3, distance = 0;
-    let tStart = null, tDelta = { x: 0, y: 0 };
-    const keys = {};
+/**
+ * SOLAR_OS // ROCKET SURVIVAL CORE
+ * Файл: game.js
+ */
 
-    // Налаштування кольорів
-    const COLORS = {
-        cyan: '#00e5ff',
-        orange: '#ffaa00',
-        red: '#ff4444',
-        bg: '#03070f'
+(function() {
+    // Елементи DOM
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('startBtn');
+    const startScreen = document.getElementById('startScreen');
+    const hud = document.getElementById('hud');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const livesDisplay = document.getElementById('livesDisplay');
+
+    // Стан гри
+    let gameRunning = false;
+    let frame = 0;
+    let speed = 4;
+    let distance = 0;
+    let lives = 3;
+    let obstacles = [];
+    let stars = [];
+
+    // ГРАВЕЦЬ (Ракета)
+    const player = {
+        x: 100,
+        y: 200,
+        r: 15,
+        targetY: 200,
+        targetX: 100
     };
 
+    // Налаштування розмірів
     function resize() {
-        W = cv.width = window.innerWidth;
-        H = cv.height = window.innerHeight;
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
         initStars();
     }
 
+    // Фоновий космос
     function initStars() {
-        stars = Array.from({length: 120}, () => ({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            s: Math.random() * 2,
-            spd: Math.random() * 3 + 1
-        }));
+        stars = [];
+        for (let i = 0; i < 80; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                s: Math.random() * 2,
+                spd: Math.random() * 2 + 0.5
+            });
+        }
     }
 
-    // --- КЕРУВАННЯ ---
-    window.onkeydown = e => keys[e.key.toLowerCase()] = true;
-    window.onkeyup = e => keys[e.key.toLowerCase()] = false;
+    // КЕРУВАННЯ
+    const handleMove = (e) => {
+        if (!gameRunning) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        player.targetX = clientX - rect.left;
+        player.targetY = clientY - rect.top;
+    };
 
-    touchLayer.addEventListener('touchstart', e => {
-        const t = e.touches[0];
-        tStart = { x: t.clientX, y: t.clientY };
-    });
-
-    touchLayer.addEventListener('touchmove', e => {
-        if (!tStart) return;
-        const t = e.touches[0];
-        tDelta.x = (t.clientX - tStart.x) * 0.3;
-        tDelta.y = (t.clientY - tStart.y) * 0.3;
-        tStart = { x: t.clientX, y: t.clientY };
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('touchmove', (e) => {
+        handleMove(e);
         e.preventDefault();
     }, { passive: false });
 
-    // --- МАЛЮВАННЯ ОБ'ЄКТІВ ---
-    function drawRocket(x, y) {
+    // ЛОГІКА ОБ'ЄКТІВ
+    function spawnObstacle() {
+        if (frame % Math.max(15, Math.floor(50 - speed)) === 0) {
+            obstacles.push({
+                x: canvas.width + 100,
+                y: Math.random() * canvas.height,
+                r: 10 + Math.random() * 15,
+                spd: speed + (Math.random() * 2)
+            });
+        }
+    }
+
+    function drawPlayer() {
+        // Плавне слідування за курсором
+        player.x += (player.targetX - player.x) * 0.1;
+        player.y += (player.targetY - player.y) * 0.1;
+
         ctx.save();
-        ctx.translate(x, y);
+        ctx.translate(player.x, player.y);
         
-        // Вогонь двигуна
-        const fl = 15 + Math.sin(frame * 0.2) * 5 + Math.random() * 5;
-        const grad = ctx.createLinearGradient(-20, 0, -20 - fl, 0);
-        grad.addColorStop(0, COLORS.orange);
+        // Вогонь
+        const engineFire = 15 + Math.random() * 10;
+        const grad = ctx.createLinearGradient(-10, 0, -10 - engineFire, 0);
+        grad.addColorStop(0, '#00e5ff');
         grad.addColorStop(1, 'transparent');
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.ellipse(-10, 0, fl, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(-8, 0, engineFire, 6, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Корпус ракети
+        // Корпус
+        ctx.fillStyle = '#22d3ee';
         ctx.shadowBlur = 15;
-        ctx.shadowColor = COLORS.cyan;
-        ctx.fillStyle = COLORS.cyan;
+        ctx.shadowColor = '#22d3ee';
         ctx.beginPath();
-        ctx.moveTo(20, 0);
-        ctx.lineTo(-10, -12);
-        ctx.lineTo(-10, 12);
+        ctx.moveTo(18, 0);
+        ctx.lineTo(-12, -10);
+        ctx.lineTo(-12, 10);
         ctx.closePath();
         ctx.fill();
-        
-        // Ілюмінатор
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(2, 0, 4, 0, Math.PI * 2);
-        ctx.fill();
-        
         ctx.restore();
     }
 
-    function drawComet(o) {
-        ctx.save();
-        // Хвіст
-        const tailGrad = ctx.createLinearGradient(o.x, o.y, o.x + o.r * 4, o.y);
-        tailGrad.addColorStop(0, COLORS.red);
-        tailGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = tailGrad;
-        ctx.beginPath();
-        ctx.moveTo(o.x, o.y - o.r);
-        ctx.lineTo(o.x + o.r * 4, o.y);
-        ctx.lineTo(o.x, o.y + o.r);
-        ctx.fill();
+    function drawObstacles() {
+        obstacles.forEach((o, i) => {
+            o.x -= o.spd;
+            
+            // Малюємо комету з хвостом
+            const tail = ctx.createLinearGradient(o.x, o.y, o.x + 40, o.y);
+            tail.addColorStop(0, 'rgba(255, 68, 68, 0.8)');
+            tail.addColorStop(1, 'transparent');
+            ctx.fillStyle = tail;
+            ctx.beginPath();
+            ctx.moveTo(o.x, o.y - o.r);
+            ctx.lineTo(o.x + 50, o.y);
+            ctx.lineTo(o.x, o.y + o.r);
+            ctx.fill();
 
-        // Ядро
-        ctx.fillStyle = '#444';
-        ctx.beginPath();
-        ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+            ctx.fillStyle = '#444';
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Перевірка зіткнення
+            const dx = player.x - o.x;
+            const dy = player.y - o.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < player.r + o.r) {
+                obstacles.splice(i, 1);
+                hit();
+            }
+        });
+        obstacles = obstacles.filter(o => o.x > -100);
     }
 
-    // --- ЛОГІКА ГРИ ---
-    function startGame() {
-        gameRunning = true;
-        lives = 3;
-        distance = 0;
-        frame = 0;
-        speed = 5;
-        obstacles = [];
-        player.x = W * 0.2;
-        player.y = H / 2;
-
-        document.getElementById('screen-start').style.display = 'none';
-        document.getElementById('screen-over').style.display = 'none';
-        document.getElementById('hud').style.display = 'flex';
-        touchLayer.style.display = 'block';
-        document.getElementById('h-lives').textContent = '❤️❤️❤️';
+    function hit() {
+        lives--;
+        livesDisplay.textContent = '❤️'.repeat(Math.max(0, lives));
+        canvas.style.borderColor = '#ff4444';
+        setTimeout(() => canvas.style.borderColor = '#164e63', 200);
+        
+        if (lives <= 0) {
+            gameOver();
+        }
     }
 
-    function endGame() {
+    function gameOver() {
         gameRunning = false;
-        touchLayer.style.display = 'none';
-        document.getElementById('hud').style.display = 'none';
-        document.getElementById('screen-over').style.display = 'flex';
-        document.getElementById('go-dist').textContent = distance + 'м';
+        alert(`МІСІЯ ЗАВЕРШЕНА! Дистанція: ${distance}м`);
+        location.reload(); // Перезавантаження для нового старту
     }
 
-    function loop() {
-        ctx.fillStyle = COLORS.bg;
-        ctx.fillRect(0, 0, W, H);
+    function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Зірки
+        // Малюємо зорі
         ctx.fillStyle = '#fff';
         stars.forEach(s => {
-            s.x -= s.spd * (gameRunning ? speed/4 : 1);
-            if (s.x < 0) s.x = W;
+            s.x -= s.spd;
+            if (s.x < 0) s.x = canvas.width;
             ctx.fillRect(s.x, s.y, s.s, s.s);
         });
 
         if (gameRunning) {
             frame++;
-            distance = Math.floor(frame / 5);
-            // Пришвидшення кожні 500 кадрів
-            speed = 5 + (frame / 800);
-            document.getElementById('h-dist').textContent = distance;
+            speed = 4 + (frame / 1000);
+            distance = Math.floor(frame / 6);
+            scoreDisplay.textContent = `DISTANCE: ${distance}m`;
 
-            // Керування клавішами
-            if (keys['w'] || keys['arrowup']) player.y -= 7;
-            if (keys['s'] || keys['arrowdown']) player.y += 7;
-            if (keys['a'] || keys['arrowleft']) player.x -= 7;
-            if (keys['d'] || keys['arrowright']) player.x += 7;
-            
-            // Керування тачем
-            player.x += tDelta.x * 2; 
-            player.y += tDelta.y * 2;
-            tDelta = { x: 0, y: 0 };
-
-            // Межі екрану
-            player.x = Math.max(20, Math.min(W - 20, player.x));
-            player.y = Math.max(60, Math.min(H - 20, player.y));
-
-            drawRocket(player.x, player.y);
-
-            // Генерація перешкод (комети)
-            if (frame % Math.max(10, Math.floor(40 - speed)) === 0) {
-                obstacles.push({ 
-                    x: W + 100, 
-                    y: Math.random() * H, 
-                    r: 10 + Math.random() * 15,
-                    spd: speed + (Math.random() * 2)
-                });
-            }
-
-            obstacles.forEach((o, i) => {
-                o.x -= o.spd;
-                drawComet(o);
-
-                // Колізія
-                const distToPlayer = Math.hypot(player.x - o.x, player.y - o.y);
-                if (distToPlayer < player.r + o.r - 5) {
-                    obstacles.splice(i, 1);
-                    lives--;
-                    document.getElementById('h-lives').textContent = '❤️'.repeat(Math.max(0, lives));
-                    document.getElementById('flash').classList.add('on');
-                    setTimeout(() => document.getElementById('flash').classList.remove('on'), 100);
-                    if (lives <= 0) endGame();
-                }
-            });
-            obstacles = obstacles.filter(o => o.x > -200);
+            spawnObstacle();
+            drawObstacles();
+            drawPlayer();
         }
 
-        requestAnimationFrame(loop);
+        requestAnimationFrame(update);
     }
 
-    // Прив'язка до кнопок після завантаження
-    window.addEventListener('load', () => {
+    // ГОЛОВНА ФУНКЦІЯ ЗАПУСКУ
+    function init() {
         resize();
-        const sBtn = document.getElementById('startBtn');
-        const rBtn = document.getElementById('restartBtn');
-
-        if (sBtn) sBtn.addEventListener('click', startGame);
-        if (rBtn) rBtn.addEventListener('click', startGame);
+        window.addEventListener('resize', resize);
         
-        loop();
-    });
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                console.log("Initialization sequence started...");
+                gameRunning = true;
+                startScreen.style.display = 'none';
+                hud.style.display = 'flex';
+                
+                // Встановлюємо початкову позицію гравця
+                player.x = 100;
+                player.y = canvas.height / 2;
+                player.targetX = 100;
+                player.targetY = canvas.height / 2;
+            });
+        }
+        
+        update();
+    }
 
-    window.addEventListener('resize', resize);
+    // Запуск після завантаження вікна
+    window.onload = init;
+
 })();
