@@ -11,8 +11,11 @@
   --c:#00e5ff;--orange:#ff6b35;--yellow:#ffd60a;--pink:#ff2d78;
   --green:#39ff14;--bg:#03070f;--border:rgba(0,229,255,.22);
 }
-html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;touch-action:none;font-family:'Orbitron',monospace;}
-#cv{position:fixed;inset:0;display:block;width:100%;height:100%;}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-family:'Orbitron',monospace;}
+#cv{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none;}
+/* screens sit above canvas and need normal touch */
+.scr{touch-action:auto;}
+.btn{touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,229,255,.2);}
 
 /* ── HUD ── */
 #hud{
@@ -37,8 +40,9 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;touch-acti
 
 /* ── SCREENS ── */
 .scr{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;}
-.scr.off{display:none;}
+  align-items:center;justify-content:center;
+  touch-action:auto;pointer-events:all;}
+.scr.off{display:none;pointer-events:none;}
 
 /* START */
 #ss{background:rgba(3,7,15,.0);}
@@ -203,20 +207,28 @@ document.addEventListener('keyup',   e => keys[e.key]=false);
 
 // ─── SWIPE TOUCH CONTROL ───
 let touchStart = null, touchDelta = {x:0, y:0};
-cv.addEventListener('touchstart', e => {
+
+function onTouchStart(e) {
+  if(e.target.closest('.btn')) return; // let buttons work normally
+  if(!running) return;
   e.preventDefault();
   const t = e.touches[0];
   touchStart = {x:t.clientX, y:t.clientY};
   touchDelta = {x:0,y:0};
-}, {passive:false});
-cv.addEventListener('touchmove', e => {
+}
+function onTouchMove(e) {
+  if(!running || !touchStart) return;
   e.preventDefault();
-  if(!touchStart) return;
   const t = e.touches[0];
   touchDelta = { x:(t.clientX-touchStart.x)/30, y:(t.clientY-touchStart.y)/30 };
   touchStart = {x:t.clientX, y:t.clientY};
-}, {passive:false});
-cv.addEventListener('touchend', e => { e.preventDefault(); touchStart=null; touchDelta={x:0,y:0}; }, {passive:false});
+}
+function onTouchEnd(e) {
+  touchStart=null; touchDelta={x:0,y:0};
+}
+document.addEventListener('touchstart', onTouchStart, {passive:false});
+document.addEventListener('touchmove',  onTouchMove,  {passive:false});
+document.addEventListener('touchend',   onTouchEnd,   false);
 
 // ════════════════════════════════
 //  STAR FIELD  (scrolling right→left = flying forward)
