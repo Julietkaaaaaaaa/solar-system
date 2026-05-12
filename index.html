@@ -83,20 +83,37 @@
             
             <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
         </section>
-        <section id="game-view" class="w-full bg-gray-950 border-t border-b border-gray-900 py-16">
+       <section id="game-view" class="w-full bg-gray-950 border-t border-b border-gray-900 py-16">
             <div class="max-w-5xl mx-auto px-4 text-center">
                 <div class="flex justify-center items-center gap-4 mb-8">
                     <div class="h-1 w-12 bg-cyan-500"></div>
                     <h3 class="font-sci-fi text-3xl text-white tracking-[0.3em]">ГРА</h3>
                     <div class="h-1 w-12 bg-cyan-500"></div>
                 </div>
-                <div class="relative bg-black border-2 border-cyan-900 rounded-lg overflow-hidden h-[400px] flex flex-col items-center justify-center neon-border">
-                    <svg class="w-16 h-16 text-cyan-600 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <h4 class="font-sci-fi text-xl text-cyan-400 tracking-widest mb-2">МОДУЛЬ ГРИ ВІДКЛЮЧЕНО</h4>
-                    <p class="text-sm text-gray-500 font-mono">Очікування завантаження скриптів аркадної гри...</p>
-                  <button id="startBtn" class="mt-6 font-sci-fi text-xs text-black bg-cyan-600 px-6 py-2 rounded hover:bg-cyan-400 transition">
-    ІНІЦІАЛІЗУВАТИ
-</button>
+                
+                <div id="game-container" class="relative bg-black border-2 border-cyan-900 rounded-lg overflow-hidden h-[400px] flex flex-col items-center justify-center neon-border">
+                    
+                    <canvas id="stars" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+                    <canvas id="gameCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+
+                    <div id="hud" style="display:none;" class="absolute top-5 w-full flex justify-between px-10 text-cyan-400 font-sci-fi z-20 pointer-events-none">
+                        <div id="scoreDisplay" class="text-xs sm:text-sm tracking-widest">DISTANCE: 0m</div>
+                        <div id="livesDisplay" class="text-lg">❤️❤️❤️</div>
+                    </div>
+
+                    <div id="startScreen" class="relative z-10 flex flex-col items-center p-6 bg-black/60 backdrop-blur-sm rounded-xl">
+                        <svg class="w-16 h-16 text-cyan-600 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h4 class="font-sci-fi text-xl text-cyan-400 tracking-widest mb-2 uppercase">Система готова</h4>
+                        <p class="text-[10px] text-gray-500 font-mono uppercase mb-6">Натисніть для ініціалізації польоту</p>
+                        
+                        <button id="startBtn" class="font-sci-fi text-xs text-black bg-cyan-600 px-10 py-3 rounded hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(8,145,178,0.4)] active:scale-95">
+                            ІНІЦІАЛІЗУВАТИ
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </section>
