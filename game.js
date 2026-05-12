@@ -6,7 +6,7 @@ const starCtx = starCanvas.getContext('2d');
 let W, H, player, obstacles, stars, score, lives, gameRunning, speed, invincible, startTime;
 const keys = {};
 
-// Налаштування кольорів Solar_OS
+// Кольори Solar_OS
 const COLORS = {
     cyan: '#00e5ff',
     orange: '#ffaa00',
@@ -18,8 +18,8 @@ function initStars() {
     stars = Array.from({length: 150}, () => ({
         x: Math.random() * W,
         y: Math.random() * H,
-        size: Math.random() * 2,
-        speed: Math.random() * 3 + 1
+        size: Math.random() * 2 + 0.5,
+        speed: Math.random() * 5 + 2 // Різна швидкість для ефекту глибини
     }));
 }
 
@@ -27,8 +27,11 @@ function updateStars() {
     starCtx.clearRect(0, 0, W, H);
     starCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
     stars.forEach(s => {
-        s.x -= s.speed * (speed / 3);
-        if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+        s.x -= s.speed * (speed / 3); // Зорі летять назад
+        if (s.x < 0) { 
+            s.x = W; 
+            s.y = Math.random() * H; 
+        }
         starCtx.fillRect(s.x, s.y, s.size, s.size);
     });
 }
@@ -41,101 +44,117 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// Керування
-window.addEventListener('keydown', e => keys[e.key] = true);
-window.addEventListener('keyup', e => keys[e.key] = false);
+// --- КЕРУВАННЯ ---
+window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+// Тач-керування для телефона
+canvas.addEventListener('touchmove', (e) => {
+    if (!gameRunning) return;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchY = touch.clientY - rect.top;
+    
+    // Плавне слідування за пальцем по вертикалі
+    player.y += (touchY - player.y) * 0.2;
+    e.preventDefault();
+}, { passive: false });
 
 function startGame() {
+    // Ракета зміщена вліво (x: 80)
     player = { 
-        x: 100, 
+        x: 80, 
         y: H/2, 
-        w: 50, 
-        h: 30, 
-        targetY: H/2,
+        w: 60, 
+        h: 35, 
         trail: [] 
     };
     obstacles = [];
     score = 0;
     lives = 3;
-    speed = 5;
+    speed = 6;
     startTime = Date.now();
     invincible = false;
     gameRunning = true;
 
     document.getElementById('hud').style.display = 'flex';
     document.getElementById('startScreen').classList.add('hidden');
-    if(document.getElementById('gameOverScreen')) document.getElementById('gameOverScreen').classList.add('hidden');
-    
     updateLivesUI();
     loop();
 }
 
 function updateLivesUI() {
     const livesDisp = document.getElementById('livesDisplay');
-    livesDisp.innerHTML = '';
-    for(let i=0; i<3; i++) {
-        const heart = document.createElement('span');
-        heart.textContent = i < lives ? '❤️' : '🖤';
-        heart.style.opacity = i < lives ? '1' : '0.3';
-        livesDisp.appendChild(heart);
-    }
-}
-
-function spawnObstacle() {
-    // Шанс появи збільшується зі швидкістю
-    if (Math.random() < 0.03 + (speed / 500)) {
-        const size = Math.random() * 30 + 20;
-        obstacles.push({
-            x: W + 100,
-            y: Math.random() * (H - 100) + 50,
-            w: size,
-            h: size * 0.8,
-            speed: (Math.random() * 2 + 3) + speed,
-            color: Math.random() > 0.5 ? COLORS.cyan : COLORS.red,
-            angle: 0,
-            rotSpeed: (Math.random() - 0.5) * 0.2
-        });
+    if (livesDisp) {
+        livesDisp.innerHTML = '';
+        for(let i=0; i<3; i++) {
+            const s = document.createElement('span');
+            s.textContent = i < lives ? '❤️' : '🖤';
+            livesDisp.appendChild(s);
+        }
     }
 }
 
 function drawPlayer() {
     ctx.save();
     
-    // Ефект миготіння при невразливості
-    if (invincible && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.3;
+    // Ефект миготіння при пошкодженні (невразливість)
+    if (invincible && Math.floor(Date.now() / 150) % 2 === 0) {
+        ctx.globalAlpha = 0.2;
+    } else {
+        ctx.globalAlpha = 1.0; // Тепер ракета не прозора
+    }
 
-    // Шлейф (вогонь ракети)
-    player.trail.unshift({x: player.x, y: player.y});
-    if (player.trail.length > 20) player.trail.pop();
+    // Неоновий шлейф (двигун)
+    player.trail.unshift({x: player.x, y: player.y + player.h/2});
+    if (player.trail.length > 25) player.trail.pop();
     
     player.trail.forEach((t, i) => {
         ctx.beginPath();
         ctx.fillStyle = i < 10 ? COLORS.cyan : COLORS.orange;
-        ctx.globalAlpha = (1 - i / 20) * 0.5;
-        ctx.arc(t.x - 20 - i * 3, t.y + player.h / 2, (player.h / 3) - i / 5, 0, Math.PI * 2);
+        ctx.globalAlpha = (1 - i / 25) * 0.6;
+        ctx.arc(t.x - 25 - i * 2, t.y, (player.h / 4) - i / 8, 0, Math.PI * 2);
         ctx.fill();
     });
 
-    // Тіло ракети (Малюємо стильний прямокутник з градієнтом як на скриншоті)
-    ctx.globalAlpha = 1.0;
-    const grad = ctx.createLinearGradient(player.x, player.y, player.x + player.w, player.y);
-    grad.addColorStop(0, COLORS.cyan);
-    grad.addColorStop(1, '#0083ff');
-
-    ctx.shadowBlur = 15;
+    // Тіло ракети (Стиль Solar_OS)
+    ctx.shadowBlur = 20;
     ctx.shadowColor = COLORS.cyan;
-    ctx.fillStyle = grad;
+    ctx.fillStyle = COLORS.cyan;
     
-    // Малюємо форму ракети
+    // Ніс ракети
     ctx.beginPath();
-    ctx.roundRect(player.x, player.y, player.w, player.h, 5);
+    ctx.moveTo(player.x + player.w, player.y + player.h/2);
+    ctx.lineTo(player.x + player.w - 20, player.y);
+    ctx.lineTo(player.x, player.y);
+    ctx.lineTo(player.x, player.y + player.h);
+    ctx.lineTo(player.x + player.w - 20, player.y + player.h);
+    ctx.closePath();
     ctx.fill();
 
-    // Кабіна
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(player.x + player.w - 15, player.y + 5, 10, player.h - 10);
+    // Ілюмінатор
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(player.x + player.w - 25, player.y + player.h/2, 6, 0, Math.PI*2);
+    ctx.fill();
     
     ctx.restore();
+}
+
+function spawnObstacle() {
+    if (Math.random() < 0.04 + (speed / 1000)) {
+        const size = Math.random() * 40 + 30;
+        obstacles.push({
+            x: W + 100,
+            y: Math.random() * (H - 100) + 50,
+            w: size,
+            h: size,
+            speed: (Math.random() * 3 + 2) + speed,
+            angle: 0,
+            rotSpeed: (Math.random() - 0.5) * 0.1,
+            type: Math.random() > 0.5 ? 'rect' : 'circle'
+        });
+    }
 }
 
 function loop() {
@@ -145,65 +164,67 @@ function loop() {
     updateStars();
     spawnObstacle();
 
-    // Таймер та пришвидшення
+    // Динаміка польоту
     const timePassed = Math.floor((Date.now() - startTime) / 1000);
-    speed = 5 + (timePassed / 10); // Кожні 10 секунд швидкість зростає на 1
+    speed = 6 + (timePassed / 8); // Поступове пришвидшення
     
-    // Оновлення HUD
-    document.getElementById('scoreDisplay').innerHTML = `TIME: ${timePassed}s | SPEED: ${speed.toFixed(1)}x`;
+    if (document.getElementById('scoreDisplay')) {
+        document.getElementById('scoreDisplay').innerHTML = `DISTANCE: ${timePassed * 10}m | SPEED: ${speed.toFixed(1)}x`;
+    }
 
-    // Рух
-    if (keys['ArrowUp'] || keys['w']) player.y -= 10;
-    if (keys['ArrowDown'] || keys['s']) player.y += 10;
+    // Рух клавішами
+    if (keys['arrowup'] || keys['w']) player.y -= 10;
+    if (keys['arrowdown'] || keys['s']) player.y += 10;
     
+    // Межі екрану
     player.y = Math.max(50, Math.min(H - 50, player.y));
 
     drawPlayer();
 
     // Обробка перешкод
-    obstacles.forEach((o, index) => {
+    obstacles.forEach((o, i) => {
         o.x -= o.speed;
         o.angle += o.rotSpeed;
 
         ctx.save();
         ctx.translate(o.x, o.y);
         ctx.rotate(o.angle);
+        ctx.strokeStyle = COLORS.red;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = COLORS.red;
         
-        // Малюємо астероїд (геометричний)
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = o.color;
-        ctx.strokeStyle = o.color;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(-o.w/2, -o.h/2, o.w, o.h);
-        
+        if (o.type === 'rect') ctx.strokeRect(-o.w/2, -o.h/2, o.w, o.h);
+        else {
+            ctx.beginPath();
+            ctx.arc(0, 0, o.w/2, 0, Math.PI*2);
+            ctx.stroke();
+        }
         ctx.restore();
 
-        // Колізія
-        if (!invincible && 
-            player.x < o.x + o.w/2 && 
-            player.x + player.w > o.x - o.w/2 &&
-            player.y < o.y + o.h/2 && 
-            player.y + player.h > o.y - o.h/2) {
-            
+        // Перевірка зіткнення
+        let dx = player.x + player.w/2 - o.x;
+        let dy = player.y + player.h/2 - o.y;
+        let distance = Math.sqrt(dx*dx + dy*dy);
+
+        if (distance < 40 && !invincible) {
             lives--;
             updateLivesUI();
-            invincible = true;
-            setTimeout(() => invincible = false, 2000);
-            obstacles.splice(index, 1);
-            
-            if (lives <= 0) gameOver();
+            if (lives <= 0) {
+                gameRunning = false;
+                alert("КІНЕЦЬ МІСІЇ. ВАША ВІДСТАНЬ: " + timePassed * 10 + "м");
+                location.reload();
+            } else {
+                invincible = true;
+                setTimeout(() => invincible = false, 2000);
+            }
+            obstacles.splice(i, 1);
         }
 
-        if (o.x < -100) obstacles.splice(index, 1);
+        if (o.x < -100) obstacles.splice(i, 1);
     });
 
     requestAnimationFrame(loop);
-}
-
-function gameOver() {
-    gameRunning = false;
-    alert(`SYSTEM OVERLOAD! \nTime: ${Math.floor((Date.now() - startTime) / 1000)}s`);
-    location.reload(); // Найпростіший спосіб рестарту
 }
 
 document.getElementById('startBtn').onclick = startGame;
