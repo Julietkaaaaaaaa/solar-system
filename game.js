@@ -202,12 +202,17 @@
                     // Ефект струсу при ударі
                     canvas.classList.add('animate-pulse');
                     setTimeout(() => canvas.classList.remove('animate-pulse'), 200);
-
-                    if (lives <= 0) {
-                        gameRunning = false;
-                        alert(`МІСІЯ ПРОВАЛЕНА!\nВаша дистанція: ${distance}м`);
-                        location.reload(); 
-                    }
+if (lives <= 0) {
+    gameRunning = false;
+    
+    // Знаходимо наше нове вікно
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalDistanceText = document.getElementById('finalDistance');
+    
+    // Показуємо результат
+    finalDistanceText.textContent = `ДИСТАНЦІЯ: ${distance}m`;
+    gameOverScreen.classList.remove('hidden'); // Показуємо вікно
+}
                 }
 
                 // Видалення об'єктів за межами екрана
