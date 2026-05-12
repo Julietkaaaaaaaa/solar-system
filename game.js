@@ -112,7 +112,7 @@ body{background:#03070f;font-family:'Orbitron',monospace;overflow:hidden;width:1
     <h2 style="color:#fff;margin-bottom:15px;font-size:14px">🚀 МІСІЯ: ВИЖИТИ</h2>
     <div style="color:#aaa;font-size:12px;margin-bottom:10px">💻 Клавіші: WASD / Стрілки</div>
     <div style="color:#aaa;font-size:12px;margin-bottom:10px">📱 Телефон: Тягніть пальцем</div>
-    <button class="play-btn" id="btn-start">РОЗПОЧАТИ ПОЛІТ</button>
+    <button class="play-btn" id="btn-start">ІНІЦІАЛІЗУВАТИ</button>
   </div>
 </div>
 
