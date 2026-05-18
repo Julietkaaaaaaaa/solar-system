@@ -1,13 +1,10 @@
-/**
- * Контролер інтерфейсу користувача.
- */
+
 (function() {
     const burgerBtn = document.getElementById('burger-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const greetBtn = document.getElementById('greet-btn');
     const searchInput = document.getElementById('search-input');
 
-    /** Керування мобільним меню */
     if (burgerBtn && mobileMenu) {
         burgerBtn.addEventListener('click', () => {
             mobileMenu.classList.toggle('hidden');
