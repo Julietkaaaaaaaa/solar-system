@@ -6,8 +6,8 @@ body {
     font-family: 'Rajdhani', sans-serif;
     color: #e2e8f0;
     scroll-behavior: smooth;
-    overflow-x: hidden; /* Заборона горизонтального скролу */
-    /* touch-action: none; ВИДАЛЕНО: викликало блокування скролінгу */
+    overflow-x: hidden;
+
 }
 
 /* Типографіка */
@@ -15,7 +15,7 @@ body {
     font-family: 'Orbitron', sans-serif; 
 }
 
-/* Візуальні ефекти (Neon) */
+/* Візуальні ефекти*/
 .neon-border {
     box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
     border: 1px solid rgba(6, 182, 212, 0.2);
@@ -33,7 +33,7 @@ body {
 /* Конфігурація 3D-простору */
 #scene-container { 
     perspective: 1000px; 
-    touch-action: pan-y; /* Дозвіл виключно вертикального скролу */
+    touch-action: pan-y;
 }
 .preserve-3d { 
     transform-style: preserve-3d; 
