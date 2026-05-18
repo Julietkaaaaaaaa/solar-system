@@ -52,7 +52,6 @@ window.SolarModule = (function() {
         window.addEventListener('pointercancel', stopDrag);
 
         sceneContainer.addEventListener('wheel', e => { 
-            // Дозволяємо системний скрол, якщо не затиснуто Ctrl (масштабування)
             if (e.ctrlKey) {
                 e.preventDefault(); 
                 state.zoom = Math.max(0.05, Math.min(5, state.zoom - e.deltaY * 0.001)); 
