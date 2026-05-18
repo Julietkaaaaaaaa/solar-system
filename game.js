@@ -3,7 +3,7 @@
 
     const setup = () => {
         const startBtn = document.getElementById('startBtn');
-        const restartBtn = document.getElementById('restartBtn'); // Додали кнопку рестарту
+        const restartBtn = document.getElementById('restartBtn'); 
         const startScreen = document.getElementById('startScreen');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const hud = document.getElementById('hud');
@@ -54,13 +54,13 @@
             player.y = canvas.height / 2;
             player.targetY = canvas.height / 2;
             
-            // Оновлюємо візуальну частину
+           
             livesDisplay.textContent = '❤️❤️❤️';
             scoreDisplay.textContent = `DISTANCE: 0m`;
             canvas.classList.remove('animate-pulse');
         }
 
-        // Малювання РАКЕТИ
+      
         function drawRocket(x, y) {
             ctx.save();
             ctx.translate(x, y);
@@ -82,7 +82,6 @@
             ctx.restore();
         }
 
-        // Малювання КОМЕТИ
         function drawComet(o) {
             ctx.save();
             const tailLen = o.r * 4;
@@ -96,7 +95,7 @@
             ctx.restore();
         }
 
-        // Обробник для кнопки СТАРТ
+     
         startBtn.onclick = function(e) {
             e.preventDefault();
             resetGame();
@@ -106,13 +105,13 @@
             gameLoop();
         };
 
-        // ОБРОБНИК ДЛЯ КНОПКИ ПОВТОРИТИ (Рестарт)
+        
         restartBtn.onclick = function(e) {
             e.preventDefault();
-            resetGame(); // Скидаємо всі цифри
-            gameOverScreen.classList.add('hidden'); // Ховаємо червоне вікно
-            gameRunning = true; // Дозволяємо грі працювати
-            gameLoop(); // Запускаємо цикл знову
+            resetGame(); 
+            gameOverScreen.classList.add('hidden'); 
+            gameRunning = true; 
+            gameLoop(); 
         };
 
         function gameLoop() {
