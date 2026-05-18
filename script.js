@@ -72,7 +72,7 @@
         });
     }
 
- /** Фільтрація та пошук */
+    /** Фільтрація та пошук */
     function setupFilters(allData) {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
