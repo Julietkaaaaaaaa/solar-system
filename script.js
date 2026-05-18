@@ -72,7 +72,7 @@
         });
     }
 
- 
+ /** Фільтрація та пошук */
     function setupFilters(allData) {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
@@ -82,9 +82,7 @@
             });
         }
 
-        const filterButtons = document.querySelectorAll('.filter-btn');
-
-        filterButtons.forEach(btn => {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const filter = btn.dataset.filter;
                 const filtered = filter === 'all' 
@@ -92,14 +90,9 @@
                     : allData.filter(p => p.categoryId === filter);
                 renderCatalog(filtered);
                 
-                filterButtons.forEach(b => {
-                    
-                    b.classList.remove('active', 'text-cyan-400', 'bg-white/10', 'border-cyan-400');
-                    
-                    b.classList.add('bg-gray-900/50', 'text-gray-400', 'border-gray-800', 'hover:text-cyan-300', 'hover:border-cyan-800');
-                });
-                btn.classList.remove('bg-gray-900/50', 'text-gray-400', 'border-gray-800', 'hover:text-cyan-300', 'hover:border-cyan-800');
-                btn.classList.add('active', 'text-cyan-400', 'bg-white/10', 'border-cyan-400');
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'text-cyan-400'));
+                btn.classList.add('active', 'text-cyan-400');
             });
         });
     }
+})();
