@@ -155,8 +155,8 @@
                     if (lives <= 0) {
                         gameRunning = false;
                         finalDistanceText.textContent = `ДИСТАНЦІЯ: ${distance}m`;
-                        gameOverScreen.classList.remove('hidden'); // Показуємо Game Over
-                        return; // Виходимо з циклу
+                        gameOverScreen.classList.remove('hidden'); 
+                        return; 
                     }
                 }
                 if (o.x < -100) obstacles.splice(i, 1);
